@@ -1,8 +1,12 @@
 const express = require('express');
 const supabase = require('./supabase')
+const cors = require('cors');
+
+const authRoutes = require('./src/auth/auth.routes');
 
 const app = express();
-app.use(express.json())
+app.use(express.json());
+app.use(cors());
 
 app.get('/check-table', async (req, res) => {
   const { data, error } = await supabase
@@ -14,12 +18,11 @@ app.get('/check-table', async (req, res) => {
   res.json({ exists: true, message: "Existe tabla users y id_user" })
 })
 
-app.use((req, res) => {
-    res.redirect('/check-table');;
-});
+app.use('/auth', authRoutes);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
     console.log('Press Ctrl+C to quit.');
 });
+
