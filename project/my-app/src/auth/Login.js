@@ -1,8 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 
 function Login({onLogin}) {
   const [mensaje, setMensaje] = useState('');
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (!token) return; 
+
+    async function checktoken(){
+      try {
+      const response_token = await fetch('http://localhost:8080/auth/verify', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'   
+        }
+      })
+
+      if (response_token.ok){
+        console.log("Login with JWT success")
+        onLogin();
+      }
+      else {
+        localStorage.removeItem('token')
+        localStorage.removeItem('username')
+      }
+    } catch (error){
+      console.error(error)
+    }
+    }
+    checktoken();
+  }, [onLogin])
 
   async function login_proccess(){
     console.log("Login proccess working...")
@@ -23,6 +53,8 @@ function Login({onLogin}) {
     console.log("Data:", data)
 
     if (response.ok){
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('username', data.username)
       onLogin();
     }
     else{      
