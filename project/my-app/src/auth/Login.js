@@ -5,27 +5,16 @@ function Login({onLogin}) {
   const [mensaje, setMensaje] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-
-    if (!token) return; 
 
     async function checktoken(){
       try {
       const response_token = await fetch('http://localhost:8080/auth/verify', {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'   
-        }
+        credentials: 'include'  
       })
-
       if (response_token.ok){
         console.log("Login with JWT success")
         onLogin();
-      }
-      else {
-        localStorage.removeItem('token')
-        localStorage.removeItem('username')
       }
     } catch (error){
       console.error(error)
@@ -44,6 +33,7 @@ function Login({onLogin}) {
     const response = await fetch('http://localhost:8080/auth/login',{
       method: "POST",
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email_user, password })
     })
 
@@ -53,8 +43,6 @@ function Login({onLogin}) {
     console.log("Data:", data)
 
     if (response.ok){
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('username', data.username)
       onLogin();
     }
     else{      
