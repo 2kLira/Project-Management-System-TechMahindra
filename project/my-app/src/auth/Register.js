@@ -36,7 +36,7 @@ function Register() {
             <label htmlFor="Email">Email</label>
             <input type ="text" id="Email" name="Email" />
         </div>
-        <div class>
+        <div>
             <label htmlFor="Name">Username</label>
             <input type ="text" id="Username" name="Username" />
         </div>
