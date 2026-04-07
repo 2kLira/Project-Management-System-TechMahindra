@@ -1,6 +1,7 @@
 const supabase = require('../../supabase')
 const argon2 = require('argon2')
 const jwt = require('jsonwebtoken')
+
 const secretKey = process.env.JWT_SECRET;
 
 async function login(req, res) { 
@@ -9,7 +10,7 @@ async function login(req, res) {
 
     const {data: data_login, error: error_login} = await supabase
       .from('users')
-      .select('email, username, password_hash')
+      .select('id_user, email, username, password_hash')
       .or(`email.eq.${email_user},username.eq.${email_user}`)
       .limit(1)
       .single()
@@ -18,8 +19,14 @@ async function login(req, res) {
       return res.status(401).json({ message: 'User not found' });
     }
     if (await argon2.verify(data_login.password_hash, password)){
-      const token = jwt.sign({ email: data_login.email, username: data_login.username }, secretKey, { expiresIn: "1h" })
-      return res.status(200).json({ message: 'Login success', token, username: data_login.username, email:data_login.email}); 
+      const token = jwt.sign({ id: data_login.id_user }, secretKey, { expiresIn: "1h" })
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: false,
+        maxAge: 3600000, 
+        sameSite: 'lax'  
+      })
+      return res.status(200).json({ message: 'Login success', username: data_login.username, email:data_login.email}); 
     }
     else{
         return res.status(401).json({ message: 'Password fail' });
@@ -30,8 +37,7 @@ async function login(req, res) {
 }
 
 function verify_token(req, res){
-  const header = req.header("Authorization") || "";
-  const token = header.split(" ")[1];
+  const token = req.cookies?.token
 
   if(!token) {
     return res.status(401).json({message: "Token not provied"})
@@ -74,4 +80,10 @@ async function register(req, res){
   res.status(201).json({ message: 'Usuario creado', user: data[0] }); 
 }
 
-module.exports = { login, register, verify_token };
+
+function logout(req, res) {
+  res.clearCookie('token');
+  return res.status(200).json({ message: 'Logout success' });
+}
+
+module.exports = { login, register, verify_token, logout };
