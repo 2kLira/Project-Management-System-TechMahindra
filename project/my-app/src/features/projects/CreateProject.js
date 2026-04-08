@@ -330,6 +330,7 @@ function CreateProject({ onCancel }) {
     const [viewers, setViewers] = useState([]);
     const [selectedViewers, setSelectedViewers] = useState([]);
     const [mensaje, setMensaje] = useState({ type: '', text: '' });
+    const [pmLoadError, setPmLoadError] = useState('');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -339,10 +340,26 @@ function CreateProject({ onCancel }) {
 
     async function loadPMs() {
         try {
+<<<<<<< HEAD:project/my-app/src/features/projects/CreateProject.js
             const { res, data } = await api.get('/projects/managers');
             if (res.ok) setPms(data.pms || []);
+=======
+            setPmLoadError('');
+            const res = await fetch('http://localhost:8080/projects/managers', {
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setPms(data.pms || []);
+            } else {
+                setPms([]);
+                setPmLoadError(data.message || data.error || `Error ${res.status} cargando PMs`);
+            }
+>>>>>>> b5045e8 (Add project deletion functionality and enhance role validation in project routes):project/my-app/src/dashboard/CreateProject.js
         } catch (err) {
             console.error('Error cargando PMs:', err);
+            setPms([]);
+            setPmLoadError('Error de conexión cargando PMs');
         }
     }
 
@@ -387,9 +404,19 @@ function CreateProject({ onCancel }) {
             newErrors.deadline = 'El deadline debe ser después del inicio';
         }
         if (!form.pm_id) newErrors.pm_id = 'Se requiere asignar un PM (CA-03)';
-        if (form.budget && isNaN(form.budget)) newErrors.budget = 'Debe ser un número';
+        if (!form.budget.trim()) {
+            newErrors.budget = 'El presupuesto es obligatorio';
+        } else if (isNaN(form.budget)) {
+            newErrors.budget = 'Debe ser un número';
+        }
         if (form.monthly_cost && isNaN(form.monthly_cost)) newErrors.monthly_cost = 'Debe ser un número';
-        if (form.story_points && isNaN(form.story_points)) newErrors.story_points = 'Debe ser un número';
+        if (!form.story_points.trim()) {
+            newErrors.story_points = 'Los story points son obligatorios';
+        } else if (isNaN(form.story_points)) {
+            newErrors.story_points = 'Debe ser un número';
+        } else if (parseInt(form.story_points, 10) <= 0) {
+            newErrors.story_points = 'Debe ser mayor a 0';
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -420,6 +447,7 @@ function CreateProject({ onCancel }) {
                 setMensaje({ type: 'success', text: `Proyecto "${form.name}" creado exitosamente.` });
                 setForm({ name: '', client: '', status: 'planning', start_date: '', deadline: '', budget: '', monthly_cost: '', story_points: '', pm_id: '' });
                 setSelectedViewers([]);
+                if (typeof onCancel === 'function') onCancel();
             } else {
                 setMensaje({ type: 'error', text: data.message || data.error || 'Error al crear el proyecto.' });
             }
@@ -444,10 +472,23 @@ function CreateProject({ onCancel }) {
     })();
 
     const caChecks = [
-        { label: 'CA-01 · Un PM asignado', ok: !!form.pm_id },
-        { label: 'CA-02 · PM con rol correcto', ok: !!form.pm_id && !!selectedPM },
-        { label: 'CA-03 · Proyecto no guardable sin PM', ok: !!form.pm_id },
-        { label: 'CA-04 · Auditoría al guardar', ok: true },
+        { label: 'CA-01 · Nombre obligatorio', ok: !!form.name.trim() },
+        {
+            label: 'CA-02 · Cliente, fechas, presupuesto y SP obligatorios',
+            ok: !!form.client.trim() && !!form.start_date && !!form.deadline && !!form.budget.trim() && !!form.story_points.trim(),
+        },
+        {
+            label: 'CA-03 · Deadline posterior a start',
+            ok: !!form.start_date && !!form.deadline && form.deadline > form.start_date,
+        },
+        {
+            label: 'CA-04 · Story points > 0',
+            ok: !!form.story_points.trim() && !isNaN(form.story_points) && parseInt(form.story_points, 10) > 0,
+        },
+        {
+            label: 'CA-05 · No guardar si falta obligatorio',
+            ok: !!form.name.trim() && !!form.client.trim() && !!form.start_date && !!form.deadline && !!form.budget.trim() && !!form.story_points.trim(),
+        },
     ];
 
     const viewers_available = viewers.filter(v => !selectedViewers.find(s => String(s.id_user) === String(v.id_user)));
@@ -606,7 +647,13 @@ function CreateProject({ onCancel }) {
                             <div style={styles.cardBody}>
                                 <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr 1fr' }}>
                                     <div style={styles.fieldGroup}>
+<<<<<<< HEAD:project/my-app/src/features/projects/CreateProject.js
                                         <label style={styles.label}>Presupuesto estimado (USD)</label>
+=======
+                                        <label style={styles.label}>
+                                            Estimated Budget (USD) <span style={styles.required}>*</span>
+                                        </label>
+>>>>>>> b5045e8 (Add project deletion functionality and enhance role validation in project routes):project/my-app/src/dashboard/CreateProject.js
                                         <input
                                             style={styles.input(errors.budget)}
                                             name="budget"
@@ -628,7 +675,13 @@ function CreateProject({ onCancel }) {
                                         {errors.monthly_cost && <span style={styles.fieldError}>{errors.monthly_cost}</span>}
                                     </div>
                                     <div style={styles.fieldGroup}>
+<<<<<<< HEAD:project/my-app/src/features/projects/CreateProject.js
                                         <label style={styles.label}>Story Points planeados</label>
+=======
+                                        <label style={styles.label}>
+                                            Total Planned Story Points <span style={styles.required}>*</span>
+                                        </label>
+>>>>>>> b5045e8 (Add project deletion functionality and enhance role validation in project routes):project/my-app/src/dashboard/CreateProject.js
                                         <input
                                             style={styles.input(errors.story_points)}
                                             name="story_points"
@@ -667,8 +720,9 @@ function CreateProject({ onCancel }) {
                                         ))}
                                     </select>
                                     {errors.pm_id && <span style={styles.fieldError}>{errors.pm_id}</span>}
+                                    {pmLoadError && <span style={styles.fieldError}>{pmLoadError}</span>}
                                     {pms.length === 0 && (
-                                        <span style={styles.hint}>No hay usuarios con rol project_manager disponibles.</span>
+                                        <span style={styles.hint}>No hay usuarios con rol PM disponibles.</span>
                                     )}
                                 </div>
 
