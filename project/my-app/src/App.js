@@ -7,14 +7,14 @@ import './App.css';
 
 function App() {
   const [mode, setMode] = useState('login');
-  const [isLoggedIn, setIsLoggedIn] = useState(false); 
+  const [user, setUser] = useState(null);
 
-  function handleLogin(){
-    setIsLoggedIn(true)
+  function handleLogin(userData){
+    setUser(userData);
   }
 
   function handleLogout(){
-    setIsLoggedIn(false)
+    setUser(null);
   }
 
   return (
@@ -52,12 +52,12 @@ function App() {
           </ul>
       </aside>
     <main className='app-content'>
-      {!isLoggedIn ? (
+      {!user ? (
         <>
           {mode === 'login' ? <Login onLogin={handleLogin} /> : <Register />}
         </>
       ) : (
-        <Dashboard onLogin={handleLogout}/>
+        <Dashboard user={user} onLogout={handleLogout}/>
       )}
     </main>
     </div>
