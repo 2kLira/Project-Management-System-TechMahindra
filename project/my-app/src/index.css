@@ -5,9 +5,264 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Dashboard Styles */
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  color: #333;
+}
+
+.logout-btn {
+  padding: 10px 20px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #c82333;
+}
+
+/* Projects Section */
+.projects-section h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.project-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.project-card h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.project-card p {
+  color: #666;
+  margin: 0 0 15px 0;
+}
+
+.project-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.role-badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.role-badge.pm {
+  background-color: #007bff;
+  color: white;
+}
+
+.role-badge.viewer {
+  background-color: #28a745;
+  color: white;
+}
+
+.date {
+  color: #999;
+  font-size: 12px;
+}
+
+.manage-viewers-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.manage-viewers-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Project Viewers Styles */
+.project-viewers {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.back-btn {
+  padding: 10px 15px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.back-btn:hover {
+  background-color: #545b62;
+}
+
+.project-viewers h2 {
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.project-viewers h3 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* Add Viewer Section */
+.add-viewer-section {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.add-viewer-section form {
+  display: flex;
+  gap: 10px;
+}
+
+.add-viewer-section select {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.add-viewer-section button {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-viewer-section button:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.add-viewer-section button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Viewers List Section */
+.viewers-list-section {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.viewers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.viewers-table th,
+.viewers-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.viewers-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.remove-btn {
+  padding: 5px 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.remove-btn:hover {
+  background-color: #c82333;
+}
+
+/* Messages */
+.message {
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.no-data {
+  color: #666;
+  font-style: italic;
+}
+
+/* Auth box */
+.auth-box {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.auth-box button {
+  margin: 5px;
 }
