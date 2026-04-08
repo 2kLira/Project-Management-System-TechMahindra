@@ -69,7 +69,7 @@ async function register(req, res){
     .from('role')
     .insert({
       id_user: data[0].id_user,
-      status: 'viewer'
+      status: 'pm'
     });
 
   if (roleError) {
