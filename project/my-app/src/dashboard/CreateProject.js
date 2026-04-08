@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 
 // -----------------------------------
-// ESTILOS
+// ESTILOS (sin sidebar, ahora es externo)
 // -----------------------------------
 
 const styles = {
-
-    // layout principal
     page: {
         minHeight: '100vh',
         backgroundColor: '#F5F5F4',
@@ -14,7 +12,6 @@ const styles = {
         color: '#1A1A1A',
     },
 
-    // header top bar
     topBar: {
         backgroundColor: '#FFFFFF',
         borderBottom: '1px solid #E5E5E3',
@@ -34,7 +31,6 @@ const styles = {
     },
 
     breadcrumbSep: { color: '#CCC' },
-
     breadcrumbActive: { color: '#1A1A1A', fontWeight: '500' },
 
     topActions: {
@@ -43,87 +39,10 @@ const styles = {
         alignItems: 'center',
     },
 
-    // contenedor principal con sidebar + content
-    layout: {
-        display: 'flex',
-        minHeight: 'calc(100vh - 56px)',
-    },
-
-    // sidebar
-    sidebar: {
-        width: '220px',
-        backgroundColor: '#1A1A1A',
-        padding: '24px 0',
-        flexShrink: 0,
-    },
-
-    sidebarLogo: {
-        padding: '0 20px 24px',
-        borderBottom: '1px solid #2E2E2E',
-        marginBottom: '16px',
-    },
-
-    logoBox: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-    },
-
-    logoIcon: {
-        width: '28px',
-        height: '28px',
-        backgroundColor: '#CC0000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: '4px',
-    },
-
-    logoText: {
-        color: '#FFFFFF',
-        fontSize: '13px',
-        fontWeight: '600',
-        lineHeight: '1.3',
-    },
-
-    logoSub: {
-        color: '#666',
-        fontSize: '11px',
-        fontWeight: '400',
-    },
-
-    navSection: {
-        padding: '8px 0',
-    },
-
-    navLabel: {
-        padding: '4px 20px',
-        fontSize: '10px',
-        fontWeight: '600',
-        color: '#555',
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-        marginBottom: '4px',
-    },
-
-    navItem: (active) => ({
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        padding: '9px 20px',
-        fontSize: '13px',
-        color: active ? '#FFFFFF' : '#888',
-        backgroundColor: active ? '#CC0000' : 'transparent',
-        cursor: 'pointer',
-        borderLeft: active ? '3px solid #FF2222' : '3px solid transparent',
-        transition: 'all 0.15s',
-    }),
-
     // area principal
     main: {
-        flex: 1,
         padding: '32px',
-        maxWidth: '900px',
+        maxWidth: '1200px',
     },
 
     pageTitle: {
@@ -139,7 +58,6 @@ const styles = {
         marginBottom: '32px',
     },
 
-    // columnas
     twoCol: {
         display: 'grid',
         gridTemplateColumns: '1fr 320px',
@@ -147,7 +65,6 @@ const styles = {
         alignItems: 'start',
     },
 
-    // tarjetas / secciones
     card: {
         backgroundColor: '#FFFFFF',
         border: '1px solid #E8E8E6',
@@ -168,7 +85,6 @@ const styles = {
         fontSize: '13px',
         fontWeight: '600',
         color: '#1A1A1A',
-        letterSpacing: '0.01em',
     },
 
     cardNote: {
@@ -180,7 +96,6 @@ const styles = {
         padding: '20px',
     },
 
-    // campos del formulario
     row: {
         display: 'grid',
         gap: '16px',
@@ -241,7 +156,6 @@ const styles = {
         marginTop: '2px',
     },
 
-    // tag chips para viewers
     tagContainer: {
         display: 'flex',
         flexWrap: 'wrap',
@@ -267,10 +181,8 @@ const styles = {
         color: '#999',
         fontSize: '14px',
         lineHeight: '1',
-        fontWeight: '400',
     },
 
-    // panel lateral resumen
     summary: {
         backgroundColor: '#FFFFFF',
         border: '1px solid #E8E8E6',
@@ -316,7 +228,6 @@ const styles = {
         wordBreak: 'break-word',
     },
 
-    // validaciones
     validationBox: {
         padding: '14px 18px',
         borderTop: '1px solid #F0F0EE',
@@ -339,7 +250,6 @@ const styles = {
         flexShrink: 0,
     }),
 
-    // botones principales
     btnPrimary: {
         height: '38px',
         padding: '0 20px',
@@ -350,8 +260,6 @@ const styles = {
         fontSize: '13px',
         fontWeight: '600',
         cursor: 'pointer',
-        letterSpacing: '0.02em',
-        transition: 'background 0.15s',
     },
 
     btnSecondary: {
@@ -363,10 +271,8 @@ const styles = {
         borderRadius: '4px',
         fontSize: '13px',
         cursor: 'pointer',
-        transition: 'all 0.15s',
     },
 
-    // mensaje de resultado
     msgSuccess: {
         backgroundColor: '#F0FAF1',
         border: '1px solid #C8E6C9',
@@ -387,7 +293,6 @@ const styles = {
         marginBottom: '16px',
     },
 
-    // loader spinner
     spinner: {
         display: 'inline-block',
         width: '12px',
@@ -402,29 +307,10 @@ const styles = {
 };
 
 // -----------------------------------
-// ICONOS SVG SIMPLES
-// -----------------------------------
-
-const Icon = ({ name }) => {
-    const icons = {
-        dashboard: '▦',
-        projects: '◫',
-        users: '◎',
-        audit: '≡',
-        leader: '◈',
-    };
-    return <span style={{ fontSize: '12px', opacity: 0.7 }}>{icons[name] || '·'}</span>;
-};
-
-// -----------------------------------
 // COMPONENTE PRINCIPAL
 // -----------------------------------
 
 function CreateProject({ onCancel }) {
-
-    // -----------------------------------
-    // ESTADO DEL FORMULARIO
-    // -----------------------------------
 
     const [form, setForm] = useState({
         name: '',
@@ -445,10 +331,6 @@ function CreateProject({ onCancel }) {
     const [mensaje, setMensaje] = useState({ type: '', text: '' });
     const [loading, setLoading] = useState(false);
 
-    // -----------------------------------
-    // CARGAR PMs Y VIEWERS AL MONTAR
-    // -----------------------------------
-
     useEffect(() => {
         loadPMs();
         loadViewers();
@@ -460,7 +342,7 @@ function CreateProject({ onCancel }) {
                 credentials: 'include'
             });
             const data = await res.json();
-            if (res.ok) setPms(data.pms);
+            if (res.ok) setPms(data.pms || []);
         } catch (err) {
             console.error('Error cargando PMs:', err);
         }
@@ -472,15 +354,11 @@ function CreateProject({ onCancel }) {
                 credentials: 'include'
             });
             const data = await res.json();
-            if (res.ok) setViewers(data.viewers);
+            if (res.ok) setViewers(data.viewers || []);
         } catch (err) {
             console.error('Error cargando viewers:', err);
         }
     }
-
-    // -----------------------------------
-    // ACTUALIZAR CAMPOS
-    // -----------------------------------
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -490,32 +368,22 @@ function CreateProject({ onCancel }) {
         }
     }
 
-    // -----------------------------------
-    // AGREGAR / QUITAR VIEWER
-    // -----------------------------------
-
     function addViewer(e) {
         const id = e.target.value;
         if (!id) return;
-
-        const viewer = viewers.find(v => v.id_user === id);
-        if (viewer && !selectedViewers.find(v => v.id_user === id)) {
+        const viewer = viewers.find(v => String(v.id_user) === String(id));
+        if (viewer && !selectedViewers.find(v => String(v.id_user) === String(id))) {
             setSelectedViewers(prev => [...prev, viewer]);
         }
         e.target.value = '';
     }
 
     function removeViewer(id) {
-        setSelectedViewers(prev => prev.filter(v => v.id_user !== id));
+        setSelectedViewers(prev => prev.filter(v => String(v.id_user) !== String(id)));
     }
-
-    // -----------------------------------
-    // VALIDAR FORMULARIO
-    // -----------------------------------
 
     function validate() {
         const newErrors = {};
-
         if (!form.name.trim()) newErrors.name = 'El nombre es obligatorio';
         if (!form.client.trim()) newErrors.client = 'El cliente es obligatorio';
         if (!form.start_date) newErrors.start_date = 'La fecha de inicio es obligatoria';
@@ -532,22 +400,22 @@ function CreateProject({ onCancel }) {
         return Object.keys(newErrors).length === 0;
     }
 
-    // -----------------------------------
-    // ENVIAR FORMULARIO
-    // -----------------------------------
-
     async function handleSubmit() {
         setMensaje({ type: '', text: '' });
-
         if (!validate()) return;
 
         setLoading(true);
         try {
             const payload = {
-                ...form,
-                budget: form.budget ? parseFloat(form.budget) : null,
+                project_name: form.name,
+                client_name: form.client,
+                status: form.status,
+                start_date: form.start_date,
+                deadline: form.deadline,
+                estimated_budget: form.budget ? parseFloat(form.budget) : null,
                 monthly_cost: form.monthly_cost ? parseFloat(form.monthly_cost) : null,
-                story_points: form.story_points ? parseInt(form.story_points) : null,
+                estimated_sp: form.story_points ? parseInt(form.story_points) : null,
+                id_pm: form.pm_id,
                 viewer_ids: selectedViewers.map(v => v.id_user),
             };
 
@@ -562,11 +430,10 @@ function CreateProject({ onCancel }) {
 
             if (res.ok) {
                 setMensaje({ type: 'success', text: `Proyecto "${form.name}" creado exitosamente.` });
-                // limpiar formulario
                 setForm({ name: '', client: '', status: 'planning', start_date: '', deadline: '', budget: '', monthly_cost: '', story_points: '', pm_id: '' });
                 setSelectedViewers([]);
             } else {
-                setMensaje({ type: 'error', text: data.message || 'Error al crear el proyecto.' });
+                setMensaje({ type: 'error', text: data.message || data.error || 'Error al crear el proyecto.' });
             }
         } catch (err) {
             console.error(err);
@@ -576,11 +443,7 @@ function CreateProject({ onCancel }) {
         }
     }
 
-    // -----------------------------------
-    // DATOS DERIVADOS PARA EL RESUMEN
-    // -----------------------------------
-
-    const selectedPM = pms.find(p => p.id_user === form.pm_id);
+    const selectedPM = pms.find(p => String(p.id_user) === String(form.pm_id));
 
     const duration = (() => {
         if (!form.start_date || !form.deadline) return '-';
@@ -592,7 +455,6 @@ function CreateProject({ onCancel }) {
         return months > 0 ? `${months}m ${rem}d` : `${rem}d`;
     })();
 
-    // validaciones CA para el panel
     const caChecks = [
         { label: 'CA-01 · Un PM asignado', ok: !!form.pm_id },
         { label: 'CA-02 · PM con rol correcto', ok: !!form.pm_id && !!selectedPM },
@@ -600,17 +462,12 @@ function CreateProject({ onCancel }) {
         { label: 'CA-04 · Auditoría al guardar', ok: true },
     ];
 
-    const viewers_available = viewers.filter(v => !selectedViewers.find(s => s.id_user === v.id_user));
-
-    // -----------------------------------
-    // RENDER
-    // -----------------------------------
+    const viewers_available = viewers.filter(v => !selectedViewers.find(s => String(s.id_user) === String(v.id_user)));
 
     return (
         <div style={styles.page}>
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
-                * { box-sizing: border-box; margin: 0; padding: 0; }
                 input:focus { border-color: #CC0000 !important; background: #FFFFFF !important; }
                 select:focus { border-color: #CC0000 !important; background: #FFFFFF !important; }
                 @keyframes spin { to { transform: rotate(360deg); } }
@@ -626,7 +483,7 @@ function CreateProject({ onCancel }) {
                     <span style={styles.breadcrumbActive}>New Project</span>
                 </div>
                 <div style={styles.topActions}>
-                    <button style={styles.btnSecondary} onClick={onCancel}>Discord</button>
+                    <button style={styles.btnSecondary} onClick={onCancel}>Discard</button>
                     <button
                         style={styles.btnPrimary}
                         onClick={handleSubmit}
@@ -638,344 +495,283 @@ function CreateProject({ onCancel }) {
                 </div>
             </div>
 
-            <div style={styles.layout}>
+            {/* contenido principal (sin sidebar interno) */}
+            <div style={styles.main}>
 
-                {/* sidebar */}
-                <div style={styles.sidebar}>
-                    <div style={styles.sidebarLogo}>
-                        <div style={styles.logoBox}>
-                            <div style={styles.logoIcon}>
-                                <span style={{ color: '#FFF', fontSize: '13px', fontWeight: '700' }}>T</span>
+                <div style={styles.pageTitle}>Create New Project</div>
+                <div style={styles.pageSubtitle}>Complete all required fields before saving.</div>
+
+                {mensaje.text && (
+                    <div style={mensaje.type === 'success' ? styles.msgSuccess : styles.msgError}>
+                        {mensaje.text}
+                    </div>
+                )}
+
+                <div style={styles.twoCol}>
+
+                    {/* columna izquierda - formulario */}
+                    <div>
+
+                        {/* Project Information */}
+                        <div style={styles.card}>
+                            <div style={styles.cardHeader}>
+                                <span style={styles.cardTitle}>Project Information</span>
+                                <span style={styles.cardNote}>RF-04 · Name must be unique</span>
                             </div>
-                            <div>
-                                <div style={styles.logoText}>TECH</div>
-                                <div style={styles.logoSub}>Mahindra PM</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style={styles.navSection}>
-                        <div style={styles.navLabel}>Overview</div>
-                        <div style={styles.navItem(false)}>
-                            <Icon name="dashboard" /> Dashboard
-                        </div>
-                        <div style={styles.navItem(true)}>
-                            <Icon name="projects" /> Projects
-                        </div>
-                        <div style={styles.navItem(false)}>
-                            <Icon name="users" /> Users
-                        </div>
-                    </div>
-
-                    <div style={styles.navSection}>
-                        <div style={styles.navLabel}>Intelligence</div>
-                        <div style={styles.navItem(false)}>
-                            <Icon name="audit" /> Audit Log
-                        </div>
-                        <div style={styles.navItem(false)}>
-                            <Icon name="leader" /> Leaderboard
-                        </div>
-                    </div>
-                </div>
-
-                {/* contenido principal */}
-                <div style={styles.main}>
-
-                    <div style={styles.pageTitle}>Create New Project</div>
-                    <div style={styles.pageSubtitle}>Complete all required fields before saving.</div>
-
-                    {/* mensaje de resultado */}
-                    {mensaje.text && (
-                        <div style={mensaje.type === 'success' ? styles.msgSuccess : styles.msgError}>
-                            {mensaje.text}
-                        </div>
-                    )}
-
-                    <div style={styles.twoCol}>
-
-                        {/* columna izquierda - formulario */}
-                        <div>
-
-                            {/* seccion informacion del proyecto */}
-                            <div style={styles.card}>
-                                <div style={styles.cardHeader}>
-                                    <span style={styles.cardTitle}>Project Information</span>
-                                    <span style={styles.cardNote}>RF-04 · Name must be unique</span>
-                                </div>
-                                <div style={styles.cardBody}>
-
-                                    <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr' }}>
-                                        <div style={styles.fieldGroup}>
-                                            <label style={styles.label}>
-                                                Project Name <span style={styles.required}>*</span>
-                                            </label>
-                                            <input
-                                                style={styles.input(errors.name)}
-                                                name="name"
-                                                value={form.name}
-                                                onChange={handleChange}
-                                                placeholder="Alpha Banking Portal"
-                                            />
-                                            {errors.name && <span style={styles.fieldError}>{errors.name}</span>}
-                                        </div>
-                                        <div style={styles.fieldGroup}>
-                                            <label style={styles.label}>
-                                                Project Status <span style={styles.required}>*</span>
-                                            </label>
-                                            <select
-                                                style={styles.select(false)}
-                                                name="status"
-                                                value={form.status}
-                                                onChange={handleChange}
-                                            >
-                                                <option value="planning">Planning</option>
-                                                <option value="active">Active</option>
-                                                <option value="on_hold">On Hold</option>
-                                                <option value="completed">Completed</option>
-                                                <option value="cancelled">Cancelled</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
+                            <div style={styles.cardBody}>
+                                <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr' }}>
                                     <div style={styles.fieldGroup}>
                                         <label style={styles.label}>
-                                            Client <span style={styles.required}>*</span>
+                                            Project Name <span style={styles.required}>*</span>
                                         </label>
                                         <input
-                                            style={styles.input(errors.client)}
-                                            name="client"
-                                            value={form.client}
+                                            style={styles.input(errors.name)}
+                                            name="name"
+                                            value={form.name}
                                             onChange={handleChange}
-                                            placeholder="HDFC Bank"
+                                            placeholder="Alpha Banking Portal"
                                         />
-                                        {errors.client && <span style={styles.fieldError}>{errors.client}</span>}
+                                        {errors.name && <span style={styles.fieldError}>{errors.name}</span>}
                                     </div>
+                                    <div style={styles.fieldGroup}>
+                                        <label style={styles.label}>
+                                            Project Status <span style={styles.required}>*</span>
+                                        </label>
+                                        <select
+                                            style={styles.select(false)}
+                                            name="status"
+                                            value={form.status}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="planning">Planning</option>
+                                            <option value="active">Active</option>
+                                            <option value="on_hold">On Hold</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="cancelled">Cancelled</option>
+                                        </select>
+                                    </div>
+                                </div>
 
+                                <div style={styles.fieldGroup}>
+                                    <label style={styles.label}>
+                                        Client <span style={styles.required}>*</span>
+                                    </label>
+                                    <input
+                                        style={styles.input(errors.client)}
+                                        name="client"
+                                        value={form.client}
+                                        onChange={handleChange}
+                                        placeholder="HDFC Bank"
+                                    />
+                                    {errors.client && <span style={styles.fieldError}>{errors.client}</span>}
                                 </div>
                             </div>
+                        </div>
 
-                            {/* seccion timeline */}
-                            <div style={styles.card}>
-                                <div style={styles.cardHeader}>
-                                    <span style={styles.cardTitle}>Timeline</span>
-                                    <span style={styles.cardNote}>Deadline must be after start date</span>
-                                </div>
-                                <div style={styles.cardBody}>
-
-                                    <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr' }}>
-                                        <div style={styles.fieldGroup}>
-                                            <label style={styles.label}>
-                                                Start Date <span style={styles.required}>*</span>
-                                            </label>
-                                            <input
-                                                type="date"
-                                                style={styles.input(errors.start_date)}
-                                                name="start_date"
-                                                value={form.start_date}
-                                                onChange={handleChange}
-                                            />
-                                            {errors.start_date && <span style={styles.fieldError}>{errors.start_date}</span>}
-                                        </div>
-                                        <div style={styles.fieldGroup}>
-                                            <label style={styles.label}>
-                                                Deadline <span style={styles.required}>*</span>
-                                            </label>
-                                            <input
-                                                type="date"
-                                                style={styles.input(errors.deadline)}
-                                                name="deadline"
-                                                value={form.deadline}
-                                                onChange={handleChange}
-                                            />
-                                            {errors.deadline && <span style={styles.fieldError}>{errors.deadline}</span>}
-                                        </div>
+                        {/* Timeline */}
+                        <div style={styles.card}>
+                            <div style={styles.cardHeader}>
+                                <span style={styles.cardTitle}>Timeline</span>
+                                <span style={styles.cardNote}>Deadline must be after start date</span>
+                            </div>
+                            <div style={styles.cardBody}>
+                                <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr' }}>
+                                    <div style={styles.fieldGroup}>
+                                        <label style={styles.label}>
+                                            Start Date <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            style={styles.input(errors.start_date)}
+                                            name="start_date"
+                                            value={form.start_date}
+                                            onChange={handleChange}
+                                        />
+                                        {errors.start_date && <span style={styles.fieldError}>{errors.start_date}</span>}
                                     </div>
+                                    <div style={styles.fieldGroup}>
+                                        <label style={styles.label}>
+                                            Deadline <span style={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            style={styles.input(errors.deadline)}
+                                            name="deadline"
+                                            value={form.deadline}
+                                            onChange={handleChange}
+                                        />
+                                        {errors.deadline && <span style={styles.fieldError}>{errors.deadline}</span>}
+                                    </div>
+                                </div>
+                                {duration !== '-' && (
+                                    <div style={styles.hint}>Duration: {duration}</div>
+                                )}
+                            </div>
+                        </div>
 
-                                    {duration !== '-' && (
-                                        <div style={styles.hint}>
-                                            Duration: {duration}
+                        {/* Budget & Story Points */}
+                        <div style={styles.card}>
+                            <div style={styles.cardHeader}>
+                                <span style={styles.cardTitle}>Budget & Story Points</span>
+                                <span style={styles.cardNote}>RF-04 · Financial data (Admin & PM only)</span>
+                            </div>
+                            <div style={styles.cardBody}>
+                                <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr 1fr' }}>
+                                    <div style={styles.fieldGroup}>
+                                        <label style={styles.label}>Estimated Budget (USD)</label>
+                                        <input
+                                            style={styles.input(errors.budget)}
+                                            name="budget"
+                                            value={form.budget}
+                                            onChange={handleChange}
+                                            placeholder="500000"
+                                        />
+                                        {errors.budget && <span style={styles.fieldError}>{errors.budget}</span>}
+                                    </div>
+                                    <div style={styles.fieldGroup}>
+                                        <label style={styles.label}>Monthly Cost Estimate</label>
+                                        <input
+                                            style={styles.input(errors.monthly_cost)}
+                                            name="monthly_cost"
+                                            value={form.monthly_cost}
+                                            onChange={handleChange}
+                                            placeholder="85000"
+                                        />
+                                        {errors.monthly_cost && <span style={styles.fieldError}>{errors.monthly_cost}</span>}
+                                    </div>
+                                    <div style={styles.fieldGroup}>
+                                        <label style={styles.label}>Total Planned Story Points</label>
+                                        <input
+                                            style={styles.input(errors.story_points)}
+                                            name="story_points"
+                                            value={form.story_points}
+                                            onChange={handleChange}
+                                            placeholder="240"
+                                        />
+                                        {errors.story_points && <span style={styles.fieldError}>{errors.story_points}</span>}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Team Assignment */}
+                        <div style={styles.card}>
+                            <div style={styles.cardHeader}>
+                                <span style={styles.cardTitle}>Team Assignment</span>
+                                <span style={styles.cardNote}>RF-05 · Exactly one PM required</span>
+                            </div>
+                            <div style={styles.cardBody}>
+                                <div style={{ ...styles.fieldGroup, marginBottom: '16px' }}>
+                                    <label style={styles.label}>
+                                        Project Manager <span style={styles.required}>* (required)</span>
+                                    </label>
+                                    <select
+                                        style={styles.select(errors.pm_id)}
+                                        name="pm_id"
+                                        value={form.pm_id}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">— Select a Project Manager —</option>
+                                        {pms.map(pm => (
+                                            <option key={pm.id_user} value={pm.id_user}>
+                                                {pm.username} · {pm.email}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {errors.pm_id && <span style={styles.fieldError}>{errors.pm_id}</span>}
+                                    {pms.length === 0 && (
+                                        <span style={styles.hint}>No hay usuarios con rol project_manager disponibles.</span>
+                                    )}
+                                </div>
+
+                                <div style={styles.fieldGroup}>
+                                    <label style={styles.label}>Add Viewers (optional)</label>
+                                    <select
+                                        style={styles.select(false)}
+                                        onChange={addViewer}
+                                        defaultValue=""
+                                    >
+                                        <option value="">— Add a viewer —</option>
+                                        {viewers_available.map(v => (
+                                            <option key={v.id_user} value={v.id_user}>
+                                                {v.username} · {v.email}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    {selectedViewers.length > 0 && (
+                                        <div style={styles.tagContainer}>
+                                            {selectedViewers.map(v => (
+                                                <div key={v.id_user} style={styles.tag}>
+                                                    {v.username}
+                                                    <span
+                                                        style={styles.tagRemove}
+                                                        onClick={() => removeViewer(v.id_user)}
+                                                    >×</span>
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
 
+                                    <span style={styles.hint}>
+                                        {selectedViewers.length} assigned
+                                    </span>
                                 </div>
-                            </div>
-
-                            {/* seccion budget y story points */}
-                            <div style={styles.card}>
-                                <div style={styles.cardHeader}>
-                                    <span style={styles.cardTitle}>Budget & Story Points</span>
-                                    <span style={styles.cardNote}>RF-04 · Financial data (Admin & PM only)</span>
-                                </div>
-                                <div style={styles.cardBody}>
-
-                                    <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr 1fr' }}>
-                                        <div style={styles.fieldGroup}>
-                                            <label style={styles.label}>Estimated Budget (USD)</label>
-                                            <input
-                                                style={styles.input(errors.budget)}
-                                                name="budget"
-                                                value={form.budget}
-                                                onChange={handleChange}
-                                                placeholder="500000"
-                                            />
-                                            {errors.budget && <span style={styles.fieldError}>{errors.budget}</span>}
-                                        </div>
-                                        <div style={styles.fieldGroup}>
-                                            <label style={styles.label}>Monthly Cost Estimate</label>
-                                            <input
-                                                style={styles.input(errors.monthly_cost)}
-                                                name="monthly_cost"
-                                                value={form.monthly_cost}
-                                                onChange={handleChange}
-                                                placeholder="85000"
-                                            />
-                                            {errors.monthly_cost && <span style={styles.fieldError}>{errors.monthly_cost}</span>}
-                                        </div>
-                                        <div style={styles.fieldGroup}>
-                                            <label style={styles.label}>Total Planned Story Points</label>
-                                            <input
-                                                style={styles.input(errors.story_points)}
-                                                name="story_points"
-                                                value={form.story_points}
-                                                onChange={handleChange}
-                                                placeholder="240"
-                                            />
-                                            {errors.story_points && <span style={styles.fieldError}>{errors.story_points}</span>}
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-                            {/* seccion team assignment */}
-                            <div style={styles.card}>
-                                <div style={styles.cardHeader}>
-                                    <span style={styles.cardTitle}>Team Assignment</span>
-                                    <span style={styles.cardNote}>RF-05 · Exactly one PM required</span>
-                                </div>
-                                <div style={styles.cardBody}>
-
-                                    {/* PM - obligatorio */}
-                                    <div style={{ ...styles.fieldGroup, marginBottom: '16px' }}>
-                                        <label style={styles.label}>
-                                            Project Manager <span style={styles.required}>* (required)</span>
-                                        </label>
-                                        <select
-                                            style={styles.select(errors.pm_id)}
-                                            name="pm_id"
-                                            value={form.pm_id}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">— Select a Project Manager —</option>
-                                            {pms.map(pm => (
-                                                <option key={pm.id_user} value={pm.id_user}>
-                                                    {pm.username} · {pm.email}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.pm_id && <span style={styles.fieldError}>{errors.pm_id}</span>}
-                                        {pms.length === 0 && (
-                                            <span style={styles.hint}>No hay usuarios con rol project_manager registrados.</span>
-                                        )}
-                                    </div>
-
-                                    {/* viewers - opcional */}
-                                    <div style={styles.fieldGroup}>
-                                        <label style={styles.label}>Add Viewers (optional)</label>
-                                        <select
-                                            style={styles.select(false)}
-                                            onChange={addViewer}
-                                            defaultValue=""
-                                        >
-                                            <option value="">— Add a viewer —</option>
-                                            {viewers_available.map(v => (
-                                                <option key={v.id_user} value={v.id_user}>
-                                                    {v.username} · {v.email}
-                                                </option>
-                                            ))}
-                                        </select>
-
-                                        {/* chips de viewers seleccionados */}
-                                        {selectedViewers.length > 0 && (
-                                            <div style={styles.tagContainer}>
-                                                {selectedViewers.map(v => (
-                                                    <div key={v.id_user} style={styles.tag}>
-                                                        {v.username}
-                                                        <span
-                                                            style={styles.tagRemove}
-                                                            onClick={() => removeViewer(v.id_user)}
-                                                        >×</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <span style={styles.hint}>
-                                            {selectedViewers.length} assigned
-                                        </span>
-                                    </div>
-
-                                </div>
-                            </div>
-
-                        </div>
-
-                        {/* columna derecha - resumen */}
-                        <div>
-                            <div style={styles.summary}>
-                                <div style={styles.summaryHeader}>Project Summary</div>
-                                <div style={styles.summaryBody}>
-
-                                    {[
-                                        { key: 'Name', val: form.name || '—' },
-                                        { key: 'Client', val: form.client || '—' },
-                                        { key: 'Timeline', val: form.start_date && form.deadline ? `${form.start_date} → ${form.deadline}` : '—' },
-                                        { key: 'Budget', val: form.budget ? `$${parseInt(form.budget).toLocaleString()}` : '—' },
-                                        { key: 'Monthly Cost', val: form.monthly_cost ? `$${parseInt(form.monthly_cost).toLocaleString()}` : '—' },
-                                        { key: 'Story Points', val: form.story_points ? `${form.story_points} SP` : '—' },
-                                        { key: 'PM Assigned', val: selectedPM ? `✓ ${selectedPM.username}` : '—' },
-                                        { key: 'Viewers', val: selectedViewers.length > 0 ? `${selectedViewers.length} assigned` : '—' },
-                                    ].map(({ key, val }) => (
-                                        <div key={key} style={styles.summaryRow}>
-                                            <span style={styles.summaryKey}>{key}</span>
-                                            <span style={{
-                                                ...styles.summaryVal,
-                                                color: key === 'PM Assigned' && selectedPM ? '#2E7D32' : '#1A1A1A'
-                                            }}>{val}</span>
-                                        </div>
-                                    ))}
-
-                                </div>
-
-                                {/* validaciones CA */}
-                                <div style={styles.validationBox}>
-                                    <div style={{ fontSize: '10px', fontWeight: '600', color: '#AAA', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                                        Validation Rules
-                                    </div>
-                                    {caChecks.map(({ label, ok }) => (
-                                        <div key={label} style={styles.validItem(ok)}>
-                                            <div style={styles.validDot(ok)} />
-                                            {label}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* boton guardar dentro del panel */}
-                                <div style={{ padding: '16px 18px', borderTop: '1px solid #F0F0EE' }}>
-                                    <button
-                                        style={{ ...styles.btnPrimary, width: '100%' }}
-                                        onClick={handleSubmit}
-                                        disabled={loading}
-                                    >
-                                        {loading && <span style={styles.spinner} />}
-                                        Save Project
-                                    </button>
-                                </div>
-
                             </div>
                         </div>
 
                     </div>
+
+                    {/* columna derecha - resumen */}
+                    <div>
+                        <div style={styles.summary}>
+                            <div style={styles.summaryHeader}>Project Summary</div>
+                            <div style={styles.summaryBody}>
+                                {[
+                                    { key: 'Name', val: form.name || '—' },
+                                    { key: 'Client', val: form.client || '—' },
+                                    { key: 'Timeline', val: form.start_date && form.deadline ? `${form.start_date} → ${form.deadline}` : '—' },
+                                    { key: 'Budget', val: form.budget ? `$${parseInt(form.budget).toLocaleString()}` : '—' },
+                                    { key: 'Monthly Cost', val: form.monthly_cost ? `$${parseInt(form.monthly_cost).toLocaleString()}` : '—' },
+                                    { key: 'Story Points', val: form.story_points ? `${form.story_points} SP` : '—' },
+                                    { key: 'PM Assigned', val: selectedPM ? `✓ ${selectedPM.username}` : '—' },
+                                    { key: 'Viewers', val: selectedViewers.length > 0 ? `${selectedViewers.length} assigned` : '—' },
+                                ].map(({ key, val }) => (
+                                    <div key={key} style={styles.summaryRow}>
+                                        <span style={styles.summaryKey}>{key}</span>
+                                        <span style={{
+                                            ...styles.summaryVal,
+                                            color: key === 'PM Assigned' && selectedPM ? '#2E7D32' : '#1A1A1A'
+                                        }}>{val}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div style={styles.validationBox}>
+                                <div style={{ fontSize: '10px', fontWeight: '600', color: '#AAA', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                                    Validation Rules
+                                </div>
+                                {caChecks.map(({ label, ok }) => (
+                                    <div key={label} style={styles.validItem(ok)}>
+                                        <div style={styles.validDot(ok)} />
+                                        {label}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div style={{ padding: '16px 18px', borderTop: '1px solid #F0F0EE' }}>
+                                <button
+                                    style={{ ...styles.btnPrimary, width: '100%' }}
+                                    onClick={handleSubmit}
+                                    disabled={loading}
+                                >
+                                    {loading && <span style={styles.spinner} />}
+                                    Save Project
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
