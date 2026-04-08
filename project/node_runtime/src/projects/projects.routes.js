@@ -6,6 +6,7 @@ const {
     getManagers,
     getViewers,
     createProject,
+    deleteProject,
 } = require('./projects.controller');
 
 const { authUser, requireRole } = require('../middleware/auth');
@@ -14,7 +15,8 @@ const { authUser, requireRole } = require('../middleware/auth');
 router.get('/', authUser, getProjects);
 
 // Catálogos para el formulario: solo admin y PM pueden ver candidatos
-router.get('/managers', authUser, requireRole('admin', 'pm'), getManagers);
-router.get('/viewers', authUser, requireRole('admin', 'pm'), getViewers);
-router.post('/create', authUser, requireRole('admin', 'pm'), createProject);
+router.get('/managers', authUser, requireRole('admin', 'pm', 'project_manager'), getManagers);
+router.get('/viewers', authUser, requireRole('admin', 'pm', 'project_manager'), getViewers);
+router.post('/create', authUser, requireRole('admin', 'pm', 'project_manager'), createProject);
+router.delete('/:id', authUser, requireRole('admin', 'pm', 'project_manager'), deleteProject);
 module.exports = router;
