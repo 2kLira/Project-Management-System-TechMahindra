@@ -1,0 +1,111 @@
+.app-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  height: 100vh;
+  overflow: hidden;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app-aside{
+  background-color: #29251D;
+  display: flex;
+  flex-direction: column;
+  padding: 35px 30px;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-decorativelineal {
+  position: absolute;
+  bottom: 0; 
+  left: 0;
+  width: 100%;
+  height: 1px; 
+  background-color: #E31837; 
+  transform: rotate(-50deg);
+  transform-origin: left bottom;
+}
+.app-decorative-position1{
+  left: -0px;
+}
+.app-decorative-position2{
+  left: -50px;
+}
+.app-decorative-position3{
+  left: -100px; 
+}
+.app-decorative-position4{
+  left: -150px;
+}
+.app-decorative-position5{
+  left: -200px; 
+}
+.app-decorative-position6{
+  left: -250px; 
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: auto;
+}
+
+.app-box {
+  height: 20px;
+  width: 40px;
+  border: 1px solid black;
+  background-color: #E31837;
+  flex-shrink: 0;
+}
+.app-businessname h6 {
+  margin: 0;
+  line-height: 1;
+}
+.app-businessname h5 {
+  margin: 0;
+  line-height: 1;
+}
+
+.app-title{
+  font-size: 15px;
+}
+
+.app-title h1 {
+  margin: 5px;
+  margin-left: 0;
+  line-height: 1;
+}
+
+.app-middle {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.app-description {
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.app-list{
+  color: #F6F2EA99;
+  font-size: 12px;
+  padding-bottom: 10px;
+  margin-top: auto;
+  margin-left: 12px;
+}
+
+li::marker{
+  color: #E31837;
+}
+
+.app-content{
+  background-color: #fff;
+}
+
+
