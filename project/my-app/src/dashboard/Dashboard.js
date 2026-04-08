@@ -6,6 +6,69 @@ function Dashboard({ onLogout }) {
     const [projects, setProjects] = useState([]);
     const [view, setView] = useState('projects');
     const [loadError, setLoadError] = useState('');
+    const [deletingProjectId, setDeletingProjectId] = useState(null);
+
+    async function loadProjects() {
+        setLoadError('');
+        try {
+            const res = await fetch('http://localhost:8080/projects', {
+                credentials: 'include'
+            });
+
+            // Si no autenticado o error de servidor: NO intentes parsear como array
+            if (!res.ok) {
+                const errBody = await res.json().catch(() => ({}));
+                console.warn('GET /projects failed:', res.status, errBody);
+                setProjects([]);
+                setLoadError(errBody.message || errBody.error || `Error ${res.status} cargando proyectos`);
+                return;
+            }
+
+            const data = await res.json();
+
+            // Defensa total: solo aceptamos arrays
+            if (Array.isArray(data)) {
+                setProjects(data);
+            } else if (data && Array.isArray(data.projects)) {
+                setProjects(data.projects);
+            } else {
+                console.warn('GET /projects returned non-array:', data);
+                setProjects([]);
+                setLoadError('Respuesta inesperada del servidor');
+            }
+        } catch (err) {
+            console.error('Error de red cargando proyectos:', err);
+            setProjects([]);
+            setLoadError('Error de conexión con el servidor');
+        }
+    }
+
+    async function handleDeleteProject(project) {
+        const confirmDelete = window.confirm(`¿Seguro que quieres borrar el proyecto "${project.project_name}"? Esta acción no se puede deshacer.`);
+        if (!confirmDelete) return;
+
+        setDeletingProjectId(project.id_project);
+        setLoadError('');
+        try {
+            const res = await fetch(`http://localhost:8080/projects/${project.id_project}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                setLoadError(data.message || data.error || `Error ${res.status} eliminando proyecto`);
+                return;
+            }
+
+            await loadProjects();
+        } catch (err) {
+            console.error('Error eliminando proyecto:', err);
+            setLoadError('Error de conexión eliminando proyecto');
+        } finally {
+            setDeletingProjectId(null);
+        }
+    }
  
     async function log_out() {
         await fetch('http://localhost:8080/auth/logout', {
@@ -16,41 +79,6 @@ function Dashboard({ onLogout }) {
     }
  
     useEffect(() => {
-        async function loadProjects() {
-            setLoadError('');
-            try {
-                const res = await fetch('http://localhost:8080/projects', {
-                    credentials: 'include'
-                });
- 
-                // Si no autenticado o error de servidor: NO intentes parsear como array
-                if (!res.ok) {
-                    const errBody = await res.json().catch(() => ({}));
-                    console.warn('GET /projects failed:', res.status, errBody);
-                    setProjects([]);
-                    setLoadError(errBody.message || errBody.error || `Error ${res.status} cargando proyectos`);
-                    return;
-                }
- 
-                const data = await res.json();
- 
-                // Defensa total: solo aceptamos arrays
-                if (Array.isArray(data)) {
-                    setProjects(data);
-                } else if (data && Array.isArray(data.projects)) {
-                    setProjects(data.projects);
-                } else {
-                    console.warn('GET /projects returned non-array:', data);
-                    setProjects([]);
-                    setLoadError('Respuesta inesperada del servidor');
-                }
-            } catch (err) {
-                console.error('Error de red cargando proyectos:', err);
-                setProjects([]);
-                setLoadError('Error de conexión con el servidor');
-            }
-        }
- 
         loadProjects();
     }, [view]);
  
@@ -110,8 +138,25 @@ function Dashboard({ onLogout }) {
                                 <div style={pageStyles.grid}>
                                     {safeProjects.map(p => (
                                         <div key={p.id_project} style={pageStyles.projectCard}>
-                                            <div style={pageStyles.projectName}>{p.project_name}</div>
+                                            <div style={pageStyles.projectHead}>
+                                                <div style={pageStyles.projectName}>{p.project_name}</div>
+                                                <button
+                                                    style={pageStyles.btnDanger}
+                                                    onClick={() => handleDeleteProject(p)}
+                                                    disabled={deletingProjectId === p.id_project}
+                                                    title="Delete project"
+                                                    aria-label={`Delete ${p.project_name}`}
+                                                >
+                                                    {deletingProjectId === p.id_project ? '…' : '×'}
+                                                </button>
+                                            </div>
                                             <div style={pageStyles.projectClient}>{p.client_name}</div>
+                                            <div style={pageStyles.projectMeta}>
+                                                Budget: {p.estimated_budget != null ? `$${Number(p.estimated_budget).toLocaleString()}` : 'N/A'}
+                                            </div>
+                                            <div style={pageStyles.projectMeta}>
+                                                Story Points: {p.estimated_sp != null ? p.estimated_sp : 'N/A'}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -207,8 +252,16 @@ const pageStyles = {
         borderRadius: 6,
         padding: 16,
     },
-    projectName: { fontSize: 14, fontWeight: 600, marginBottom: 4 },
+    projectHead: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 8,
+        marginBottom: 4,
+    },
+    projectName: { fontSize: 14, fontWeight: 600 },
     projectClient: { fontSize: 12, color: '#888' },
+    projectMeta: { fontSize: 12, color: '#555', marginTop: 4 },
     btnPrimary: {
         height: 36,
         padding: '0 16px',
@@ -228,6 +281,20 @@ const pageStyles = {
         border: '1px solid #D0D0CE',
         borderRadius: 4,
         fontSize: 13,
+        cursor: 'pointer',
+    },
+    btnDanger: {
+        minWidth: 24,
+        height: 22,
+        padding: 0,
+        backgroundColor: '#F5F2EB',
+        color: '#6F6657',
+        border: '1px solid #E5DDCF',
+        borderRadius: 999,
+        fontSize: 15,
+        lineHeight: '18px',
+        textAlign: 'center',
+        fontWeight: 500,
         cursor: 'pointer',
     },
 };

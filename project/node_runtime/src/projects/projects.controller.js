@@ -1,5 +1,20 @@
 const supabase = require('../../supabase');
 
+const PM_ROLE_VALUES = ['pm', 'project_manager', 'project manager'];
+const VIEWER_ROLE_VALUES = ['viewer'];
+
+function normalizeRole(value) {
+    return String(value || '').trim().toLowerCase().replace(/\s+/g, '_');
+}
+
+function isPmRole(value) {
+    return PM_ROLE_VALUES.map(normalizeRole).includes(normalizeRole(value));
+}
+
+function isViewerRole(value) {
+    return VIEWER_ROLE_VALUES.map(normalizeRole).includes(normalizeRole(value));
+}
+
 // =====================================================
 // GET /projects
 // =====================================================
@@ -7,10 +22,20 @@ async function getProjects(req, res) {
     try {
         const { data, error } = await supabase
             .from('project')
-            .select('*');
+            .select('*, budget(id_budget, total_cost)');
 
         if (error) return res.status(500).json({ error: error.message });
-        return res.status(200).json(data);
+
+        const normalized = (data || []).map((p) => {
+            const budgetRows = Array.isArray(p.budget) ? p.budget : [];
+            const latestBudget = budgetRows.sort((a, b) => (b.id_budget || 0) - (a.id_budget || 0))[0];
+            return {
+                ...p,
+                estimated_budget: latestBudget?.total_cost ?? null,
+            };
+        });
+
+        return res.status(200).json(normalized);
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -27,15 +52,14 @@ async function getProjects(req, res) {
 // =====================================================
 async function getManagers(req, res) {
     try {
-        // 1. Usuarios con rol 'pm'
+        // 1. Usuarios con rol PM (soporta aliases de status)
         const { data: roles, error: roleErr } = await supabase
             .from('role')
-            .select('id_user')
-            .eq('status', 'pm');
+            .select('id_user, status');
 
         if (roleErr) return res.status(500).json({ error: roleErr.message });
 
-        const pmIds = roles.map(r => r.id_user);
+        const pmIds = roles.filter((r) => isPmRole(r.status)).map(r => r.id_user);
         if (pmIds.length === 0) return res.status(200).json({ pms: [] });
 
         // 2. Datos de esos usuarios
@@ -46,17 +70,7 @@ async function getManagers(req, res) {
 
         if (usersErr) return res.status(500).json({ error: usersErr.message });
 
-        // 3. PMs ya ocupados (que aparecen como id_pm en project)
-        const { data: busyProjects, error: busyErr } = await supabase
-            .from('project')
-            .select('id_pm');
-
-        if (busyErr) return res.status(500).json({ error: busyErr.message });
-
-        const busyPmSet = new Set(busyProjects.map(p => p.id_pm));
-        const availablePms = users.filter(u => !busyPmSet.has(u.id_user));
-
-        return res.status(200).json({ pms: availablePms });
+        return res.status(200).json({ pms: users });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -70,12 +84,11 @@ async function getViewers(req, res) {
     try {
         const { data: roles, error: roleErr } = await supabase
             .from('role')
-            .select('id_user')
-            .eq('status', 'viewer');
+            .select('id_user, status');
 
         if (roleErr) return res.status(500).json({ error: roleErr.message });
 
-        const viewerIds = roles.map(r => r.id_user);
+        const viewerIds = roles.filter((r) => isViewerRole(r.status)).map(r => r.id_user);
         if (viewerIds.length === 0) return res.status(200).json({ viewers: [] });
 
         const { data: users, error: usersErr } = await supabase
@@ -109,13 +122,16 @@ async function createProject(req, res) {
             start_date,
             deadline,
             client_name,
+            estimated_budget,
             estimated_sp,
             viewer_ids = [],
         } = req.body;
 
         // ---------- Validaciones básicas ----------
-        if (!project_name || !client_name) {
-            return res.status(400).json({ message: 'project_name y client_name son obligatorios' });
+        if (!project_name || !client_name || !start_date || !deadline || estimated_budget === undefined || estimated_budget === null || estimated_budget === '' || estimated_sp === undefined || estimated_sp === null || estimated_sp === '') {
+            return res.status(400).json({
+                message: 'project_name, client_name, start_date, deadline, estimated_budget y estimated_sp son obligatorios'
+            });
         }
         if (!id_pm) {
             return res.status(400).json({ message: 'CA-03: se requiere asignar un PM' });
@@ -123,8 +139,17 @@ async function createProject(req, res) {
         if (start_date && deadline && new Date(deadline) <= new Date(start_date)) {
             return res.status(400).json({ message: 'El deadline debe ser posterior a la fecha de inicio' });
         }
+        if (isNaN(Number(estimated_budget))) {
+            return res.status(400).json({ message: 'estimated_budget debe ser numérico' });
+        }
+        if (isNaN(Number(estimated_sp))) {
+            return res.status(400).json({ message: 'estimated_sp debe ser numérico' });
+        }
+        if (Number(estimated_sp) <= 0) {
+            return res.status(400).json({ message: 'Los story points planeados deben ser mayores a 0' });
+        }
 
-        // ---------- CA-02: el PM debe tener rol 'pm' ----------
+        // ---------- CA-02: el PM debe tener rol válido de PM ----------
         const { data: pmRole, error: pmRoleErr } = await supabase
             .from('role')
             .select('status')
@@ -134,24 +159,9 @@ async function createProject(req, res) {
         if (pmRoleErr || !pmRole) {
             return res.status(400).json({ message: 'CA-02: el usuario asignado no tiene rol registrado' });
         }
-        if (pmRole.status !== 'pm') {
+        if (!isPmRole(pmRole.status)) {
             return res.status(400).json({
-                message: `CA-02: el usuario asignado tiene rol '${pmRole.status}', se requiere 'pm'`
-            });
-        }
-
-        // ---------- Restricción: un solo proyecto por PM ----------
-        const { data: existingPmProject, error: existingErr } = await supabase
-            .from('project')
-            .select('id_project, project_name')
-            .eq('id_pm', id_pm);
-
-        if (existingErr) {
-            return res.status(500).json({ message: 'Error verificando PM', error: existingErr.message });
-        }
-        if (existingPmProject && existingPmProject.length > 0) {
-            return res.status(400).json({
-                message: `El PM ya está asignado al proyecto "${existingPmProject[0].project_name}". Un PM solo puede gestionar un proyecto a la vez.`
+                message: `CA-02: el usuario asignado tiene rol '${pmRole.status}', se requiere rol PM`
             });
         }
 
@@ -167,8 +177,6 @@ async function createProject(req, res) {
         }
 
         // ---------- Insertar proyecto ----------
-        // Solo columnas que existen en tu tabla project actual:
-        // id_pm, project_name, description, deadline, start_date, client_name, estimated_sp
         const insertPayload = {
             id_pm,
             project_name,
@@ -176,7 +184,7 @@ async function createProject(req, res) {
             start_date: start_date || null,
             deadline: deadline || null,
             client_name,
-            estimated_sp: estimated_sp || null,
+            estimated_sp: Number(estimated_sp),
         };
 
         const { data: created, error: insertErr } = await supabase
@@ -187,6 +195,28 @@ async function createProject(req, res) {
 
         if (insertErr) {
             return res.status(500).json({ message: 'Error creando proyecto', error: insertErr.message });
+        }
+
+        // Presupuesto estimado se guarda en tabla budget
+        const { error: budgetErr } = await supabase
+            .from('budget')
+            .insert([{
+                id_project: created.id_project,
+                total_cost: Number(estimated_budget),
+                can_view_budget: true,
+                description: 'Estimated budget at project creation',
+            }]);
+
+        if (budgetErr) {
+            await supabase
+                .from('project')
+                .delete()
+                .eq('id_project', created.id_project);
+
+            return res.status(500).json({
+                message: 'Error guardando presupuesto inicial del proyecto',
+                error: budgetErr.message,
+            });
         }
 
         // ---------- Asignar viewers en project_member ----------
@@ -227,9 +257,102 @@ async function createProject(req, res) {
 
         return res.status(201).json({
             message: 'Proyecto creado exitosamente',
-            project: created
+            project: {
+                ...created,
+                estimated_budget: Number(estimated_budget),
+            }
         });
 
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: error.message });
+    }
+}
+
+// =====================================================
+// DELETE /projects/:id
+// Admin puede borrar cualquier proyecto.
+// PM solo puede borrar proyectos donde sea id_pm.
+// =====================================================
+async function deleteProject(req, res) {
+    try {
+        const projectId = Number(req.params.id);
+        if (!projectId || Number.isNaN(projectId)) {
+            return res.status(400).json({ message: 'ID de proyecto inválido' });
+        }
+
+        const { data: project, error: projectErr } = await supabase
+            .from('project')
+            .select('id_project, id_pm, project_name')
+            .eq('id_project', projectId)
+            .single();
+
+        if (projectErr || !project) {
+            return res.status(404).json({ message: 'Proyecto no encontrado' });
+        }
+
+        const userRole = normalizeRole(req.user?.role);
+        const isAdmin = userRole === 'admin';
+        const isOwnerPm = Number(req.user?.id_user) === Number(project.id_pm);
+        if (!isAdmin && !isOwnerPm) {
+            return res.status(403).json({ message: 'No tienes permisos para borrar este proyecto' });
+        }
+
+        // Borrado manual por dependencias FK (sin cascada en schema actual)
+        const { data: budgetRows, error: budgetRowsErr } = await supabase
+            .from('budget')
+            .select('id_budget')
+            .eq('id_project', projectId);
+
+        if (budgetRowsErr) {
+            return res.status(500).json({ message: 'Error leyendo presupuestos del proyecto', error: budgetRowsErr.message });
+        }
+
+        const budgetIds = (budgetRows || []).map((b) => b.id_budget);
+
+        const { data: sprintRows, error: sprintRowsErr } = await supabase
+            .from('sprint')
+            .select('id_sprint')
+            .eq('id_project', projectId);
+
+        if (sprintRowsErr) {
+            return res.status(500).json({ message: 'Error leyendo sprints del proyecto', error: sprintRowsErr.message });
+        }
+
+        const sprintIds = (sprintRows || []).map((s) => s.id_sprint);
+
+        await supabase.from('auditory').delete().eq('id_project', projectId);
+        await supabase.from('story_points').delete().eq('id_project', projectId);
+        await supabase.from('risk').delete().eq('id_project', projectId);
+        await supabase.from('milestones').delete().eq('id_project', projectId);
+        await supabase.from('semaphore').delete().eq('id_project', projectId);
+        await supabase.from('project_update').delete().eq('id_project', projectId);
+        await supabase.from('project_member').delete().eq('id_project', projectId);
+
+        if (sprintIds.length > 0) {
+            await supabase.from('sprint_plan').delete().in('id_sprint', sprintIds);
+            await supabase.from('sprint_progress').delete().in('id_sprint', sprintIds);
+        }
+        await supabase.from('sprint').delete().eq('id_project', projectId);
+
+        if (budgetIds.length > 0) {
+            await supabase.from('spend').delete().in('id_budget', budgetIds);
+        }
+        await supabase.from('budget').delete().eq('id_project', projectId);
+
+        const { error: deleteProjectErr } = await supabase
+            .from('project')
+            .delete()
+            .eq('id_project', projectId);
+
+        if (deleteProjectErr) {
+            return res.status(500).json({ message: 'Error borrando proyecto', error: deleteProjectErr.message });
+        }
+
+        return res.status(200).json({
+            message: `Proyecto "${project.project_name}" eliminado exitosamente`,
+            id_project: projectId,
+        });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: error.message });
@@ -241,4 +364,5 @@ module.exports = {
     getManagers,
     getViewers,
     createProject,
+    deleteProject,
 };
