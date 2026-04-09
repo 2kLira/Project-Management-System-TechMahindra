@@ -6,7 +6,7 @@ const secretKey = process.env.JWT_SECRET;
 
 const VALID_ROLES = ['admin', 'pm', 'viewer'];
 
-// LOGIN
+
 async function login(req, res) { 
   try {
     const { email_user, password } = req.body;
@@ -27,7 +27,7 @@ async function login(req, res) {
       return res.status(401).json({ message: 'Invalid password' });
     }
 
-    // ✅ Actualizar last_login al momento del login
+
     await supabase
       .from('users')
       .update({ last_login: new Date().toISOString() })
@@ -35,7 +35,7 @@ async function login(req, res) {
 
     const token = jwt.sign({ id: data.id_user }, secretKey, { expiresIn: "1h" });
 
-    // ✅ Manejo de cookie seguro
+
     res.cookie('token', token, {
       httpOnly: true,
       secure: false,
@@ -49,12 +49,12 @@ async function login(req, res) {
     });
 
   } catch (err) {
-    // ✅ Manejo de error coherente
+
     return res.status(500).json({ message: err.message });
   }
 }
 
-// REGISTER
+
 async function register(req, res) {
   const { email, username, password, full_name, role } = req.body;
 
@@ -119,7 +119,7 @@ async function register(req, res) {
   }
 }
 
-// VERIFY TOKEN
+
 function verify_token(req, res) {
   const token = req.cookies?.token;
 
@@ -138,7 +138,7 @@ function verify_token(req, res) {
   }
 }
 
-// LOGOUT
+
 function logout(req, res) {
   res.clearCookie('token');
   return res.status(200).json({ message: 'Logout success' });
