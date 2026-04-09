@@ -21,7 +21,7 @@ async function authUser(req, res, next) {
                     status
                 )
             `)
-            .eq('id_user', decoded.id_user)
+            .eq('id_user', decoded.id)
             .single();
 
         if (error || !user) {

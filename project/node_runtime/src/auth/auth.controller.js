@@ -23,10 +23,23 @@ async function login(req, res) {
       res.cookie('token', token, {
         httpOnly: true,
         secure: false,
-        maxAge: 3600000, 
-        sameSite: 'lax'  
+        maxAge: 3600000,
+        sameSite: 'lax'
       })
-      return res.status(200).json({ message: 'Login success', username: data_login.username, email:data_login.email}); 
+
+      const { data: roleData } = await supabase
+        .from('role')
+        .select('status')
+        .eq('id_user', data_login.id_user)
+        .single();
+
+      return res.status(200).json({
+        message: 'Login success',
+        id_user: data_login.id_user,
+        username: data_login.username,
+        email: data_login.email,
+        role: roleData?.status || null,
+      });
     }
     else{
         return res.status(401).json({ message: 'Password fail' });
@@ -86,4 +99,9 @@ function logout(req, res) {
   return res.status(200).json({ message: 'Logout success' });
 }
 
-module.exports = { login, register, verify_token, logout };
+// GET /auth/me — devuelve el usuario autenticado con su rol
+function me(req, res) {
+  return res.status(200).json(req.user);
+}
+
+module.exports = { login, register, verify_token, logout, me };
