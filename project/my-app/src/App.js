@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import Login from './auth/Login';
-import Register from './auth/Register';
 import Dashboard from './dashboard/Dashboard';
 import './App.css';
 
 
 function App() {
-  const [mode, setMode] = useState('login');
   const [user, setUser] = useState(null);
 
-  function handleLogin(userData){
+  function handleLogin(userData) {
     setUser(userData);
   }
 
-  function handleLogout(){
+  function handleLogout() {
     setUser(null);
   }
 
@@ -60,10 +58,7 @@ function App() {
         </ul>
       </aside>
       <main className='app-content'>
-        <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
-          {mode === 'login' ? 'Create an account' : 'Already have an account?'}
-        </button>
-        {mode === 'login' ? <Login onLogin={handleLogin} /> : <Register />}
+        <Login onLogin={handleLogin} />
       </main>
     </div>
   );
