@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import Login from './auth/Login';
-import Register from './auth/Register';
 import Dashboard from './dashboard/Dashboard';
 import './App.css';
  
  
 function App() {
-  const [mode, setMode] = useState('login');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
  
   function handleLogin() {
@@ -69,10 +67,7 @@ function App() {
       </aside>
  
       <main className='app-content'>
-        <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
-          {mode === 'login' ? 'Create an account' : 'Already have an account?'}
-        </button>
-        {mode === 'login' ? <Login onLogin={handleLogin} /> : <Register />}
+        <Login onLogin={handleLogin} />
       </main>
     </div>
   );
