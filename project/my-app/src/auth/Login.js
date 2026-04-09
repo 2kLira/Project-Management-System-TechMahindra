@@ -10,19 +10,18 @@ function Login({onLogin}) {
 
     async function checktoken(){
       try {
-      const response_token = await fetch('http://localhost:8080/auth/verify', {
-        method: 'GET',
-        credentials: 'include'  
-      })
-      if (response_token.ok){
-        console.log("Login with JWT success")
-        // verify only returns decoded JWT (no role), redirect to Dashboard
-        // Dashboard will fetch current user info on mount
-        onLogin({});
+        const response_token = await fetch('http://localhost:8080/auth/verify', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        if (response_token.ok){
+          const data = await response_token.json();
+          console.log("Login with JWT success");
+          onLogin({ id: data.user.id, role: data.user.role, username: data.user.username });
+        }
+      } catch (error){
+        console.error(error);
       }
-    } catch (error){
-      console.error(error)
-    }
     }
     checktoken();
   }, [onLogin])
@@ -43,7 +42,7 @@ function Login({onLogin}) {
     console.log("Data:", data)
 
     if (response.ok){
-      onLogin({ id_user: data.id_user, username: data.username, email: data.email, role: data.role });
+      onLogin({ id: data.id_user, role: data.role, username: data.username });
     }
     else{      
       setMensaje('Login fail');
