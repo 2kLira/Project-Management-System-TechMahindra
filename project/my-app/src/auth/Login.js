@@ -16,7 +16,9 @@ function Login({onLogin}) {
       })
       if (response_token.ok){
         console.log("Login with JWT success")
-        onLogin();
+        // verify only returns decoded JWT (no role), redirect to Dashboard
+        // Dashboard will fetch current user info on mount
+        onLogin({});
       }
     } catch (error){
       console.error(error)
@@ -41,7 +43,7 @@ function Login({onLogin}) {
     console.log("Data:", data)
 
     if (response.ok){
-      onLogin();
+      onLogin({ id_user: data.id_user, username: data.username, email: data.email, role: data.role });
     }
     else{      
       setMensaje('Login fail');

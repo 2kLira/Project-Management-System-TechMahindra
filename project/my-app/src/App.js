@@ -8,12 +8,15 @@ import './App.css';
 function App() {
   const [mode, setMode] = useState('login');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
- 
-  function handleLogin() {
+  const [currentUser, setCurrentUser] = useState(null);
+
+  function handleLogin(userData) {
+    setCurrentUser(userData);
     setIsLoggedIn(true);
   }
- 
+
   function handleLogout() {
+    setCurrentUser(null);
     setIsLoggedIn(false);
   }
  
@@ -24,7 +27,7 @@ function App() {
   if (isLoggedIn) {
     return (
       <div className="app-layout-app">
-        <Dashboard onLogout={handleLogout} />
+        <Dashboard onLogout={handleLogout} currentUser={currentUser} />
       </div>
     );
   }
@@ -72,7 +75,7 @@ function App() {
         <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
           {mode === 'login' ? 'Create an account' : 'Already have an account?'}
         </button>
-        {mode === 'login' ? <Login onLogin={handleLogin} /> : <Register />}
+        {mode === 'login' ? <Login onLogin={handleLogin} /> : <Register onRegister={() => setMode('login')} />}
       </main>
     </div>
   );
