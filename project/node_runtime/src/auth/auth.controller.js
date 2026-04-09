@@ -1,89 +1,134 @@
-const supabase = require('../../supabase')
-const argon2 = require('argon2')
-const jwt = require('jsonwebtoken')
+const supabase = require('../../supabase');
+const argon2 = require('argon2');
+const jwt = require('jsonwebtoken');
 
 const secretKey = process.env.JWT_SECRET;
+const VALID_ROLES = ['admin', 'pm', 'viewer'];
 
-async function login(req, res) { 
-  try{
-    const {email_user, password} = req.body;
+async function login(req, res) {
+  try {
+    const { email_user, password } = req.body;
 
-    const {data: data_login, error: error_login} = await supabase
+    const { data, error } = await supabase
       .from('users')
       .select('id_user, email, username, password_hash')
       .or(`email.eq.${email_user},username.eq.${email_user}`)
-      .limit(1)
-      .single()
+      .single();
 
-    if (error_login || !data_login) {
+    if (error || !data) {
       return res.status(401).json({ message: 'User not found' });
     }
-    if (await argon2.verify(data_login.password_hash, password)){
-      const token = jwt.sign({ id: data_login.id_user }, secretKey, { expiresIn: "1h" })
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: false,
-        maxAge: 3600000, 
-        sameSite: 'lax'  
-      })
-      return res.status(200).json({ message: 'Login success', username: data_login.username, email:data_login.email}); 
+
+    const validPassword = await argon2.verify(data.password_hash, password);
+    if (!validPassword) {
+      return res.status(401).json({ message: 'Invalid password' });
     }
-    else{
-        return res.status(401).json({ message: 'Password fail' });
-    }
-  } catch(error){
-    console.error(error)
-  }
-}
 
-function verify_token(req, res){
-  const token = req.cookies?.token
+    await supabase
+      .from('users')
+      .update({ last_login: new Date().toISOString() })
+      .eq('id_user', data.id_user);
 
-  if(!token) {
-    return res.status(401).json({message: "Token not provied"})
-  }
-  try{
-    const payload = jwt.verify(token, secretKey);
-    return res.status(200).json({ message: "You have access", user: payload });
+    const { data: roleData } = await supabase
+      .from('role')
+      .select('status')
+      .eq('id_user', data.id_user)
+      .single();
 
-  } catch(error){
-    return res.status(403).json({message: "Token not valid"})
-  }
-}
+    const role = roleData?.status || 'viewer';
 
-async function register(req, res){
-  const {email, username, password} = req.body
+    const token = jwt.sign(
+      { id: data.id_user, role, username: data.username },
+      secretKey,
+      { expiresIn: "1h" }
+    );
 
-  const hash = await argon2.hash(password)
-  
-  const {data, error} = await supabase
-    .from('users')
-    .insert({email: email, username: username, password_hash: hash})
-    .select();
-
-  if (error) {
-    return res.status(400).json({ message: 'Error al crear usuario', detail: error.message });
-  }
-
-  const { error: roleError } = await supabase
-    .from('role')
-    .insert({
-      id_user: data[0].id_user,
-      status: 'pm'
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 3600000
     });
 
-  if (roleError) {
-    console.error('Error asignando rol:', roleError);
-    return res.status(500).json({ message: 'Role not applied' });
-  }
+    return res.status(200).json({
+      message: 'Login success',
+      id_user: data.id_user,
+      username: data.username,
+      email: data.email,
+      role,
+    });
 
-  res.status(201).json({ message: 'Usuario creado', user: data[0] }); 
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
 }
 
+async function register(req, res) {
+  const { email, username, password, full_name, role } = req.body;
+
+  try {
+    if (!email || !username || !password || !full_name || !role) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (!VALID_ROLES.includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    const hash = await argon2.hash(password);
+
+    const { data, error } = await supabase
+      .from('users')
+      .insert({ email, username, full_name, password_hash: hash })
+      .select();
+
+    if (error) {
+      return res.status(400).json({ message: 'Error creating user', detail: error.message });
+    }
+
+    const user = data[0];
+
+    const { error: roleError } = await supabase
+      .from('role')
+      .insert({ id_user: user.id_user, status: role });
+
+    if (roleError) {
+      return res.status(500).json({ message: 'Error assigning role', detail: roleError.message });
+    }
+
+    return res.status(201).json({ message: 'User created successfully', user });
+
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error', detail: err.message });
+  }
+}
+
+function verify_token(req, res) {
+  const token = req.cookies?.token;
+
+  if (!token) {
+    return res.status(401).json({ message: "Token not provided" });
+  }
+
+  try {
+    const payload = jwt.verify(token, secretKey);
+    return res.status(200).json({
+      message: "Access granted",
+      user: { id: payload.id, role: payload.role, username: payload.username }
+    });
+  } catch {
+    return res.status(403).json({ message: "Invalid token" });
+  }
+}
 
 function logout(req, res) {
   res.clearCookie('token');
   return res.status(200).json({ message: 'Logout success' });
 }
 
-module.exports = { login, register, verify_token, logout };
+// GET /auth/me — devuelve el usuario autenticado con su rol
+function me(req, res) {
+  return res.status(200).json(req.user);
+}
+
+module.exports = { login, register, verify_token, logout, me };

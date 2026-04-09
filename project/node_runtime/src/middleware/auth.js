@@ -1,10 +1,6 @@
 const jwt = require('jsonwebtoken');
 const supabase = require('../../supabase');
 
-function normalizeRole(value) {
-    return String(value || '').trim().toLowerCase().replace(/\s+/g, '_');
-}
-
 async function authUser(req, res, next) {
     try {
         const token = req.cookies?.token;
@@ -14,11 +10,6 @@ async function authUser(req, res, next) {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const tokenUserId = decoded.id_user || decoded.id;
-
-        if (!tokenUserId) {
-            return res.status(401).json({ message: 'Invalid token payload.' });
-        }
 
         const { data: user, error } = await supabase
             .from('users')
@@ -30,24 +21,18 @@ async function authUser(req, res, next) {
                     status
                 )
             `)
-            .eq('id_user', tokenUserId)
+            .eq('id_user', decoded.id)
             .single();
 
         if (error || !user) {
             return res.status(401).json({ message: 'Invalid token. User not found.' });
         }
 
-        const roleRows = Array.isArray(user.role) ? user.role : (user.role ? [user.role] : []);
-        const roles = roleRows
-            .map((r) => normalizeRole(r?.status))
-            .filter(Boolean);
-
         req.user = {
             id_user: user.id_user,
             username: user.username,
             email: user.email,
-            role: roles[0] || null,
-            roles,
+            role: user.role?.status || null
         };
 
         next();
@@ -63,12 +48,7 @@ function requireRole(...allowed) {
             return res.status(401).json({ message: 'Authentication required.' });
         }
 
-        const allowedNormalized = allowed.map(normalizeRole);
-        const userRoles = Array.isArray(req.user.roles) && req.user.roles.length > 0
-            ? req.user.roles
-            : [normalizeRole(req.user.role)];
-
-        if (!userRoles.some((r) => allowedNormalized.includes(r))) {
+        if (!allowed.includes(req.user.role)) {
             return res.status(403).json({
                 message: `Access denied. Required role: ${allowed.join(' or ')}`
             });
