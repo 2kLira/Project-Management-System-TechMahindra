@@ -1,6 +1,6 @@
 const supabase = require('../../supabase');
 
-// GET USERS
+
 async function getUsers(req, res) {
   try {
     const { data: users, error: usersError } = await supabase
@@ -33,7 +33,7 @@ async function getUsers(req, res) {
   }
 }
 
-// UPDATE STATUS
+
 async function updateStatus(req, res) {
   const { id } = req.params;
   const { status } = req.body;
@@ -54,7 +54,7 @@ async function updateStatus(req, res) {
   }
 }
 
-// UPDATE ROLE
+
 async function updateRole(req, res) {
   const { id } = req.params;
   const { role } = req.body;

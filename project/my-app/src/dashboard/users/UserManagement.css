@@ -3,10 +3,10 @@
     font-family: Arial, Helvetica, sans-serif;
     max-height: 100vh;
     overflow-y: auto;
-    background-color: #fdf8f3; /* tono crema claro para el fondo */
+    background-color: #fdf8f3; 
 }
 
-/* HEADER */
+
 .users-header {
     margin-bottom: 30px;
     padding: 20px;
@@ -20,10 +20,10 @@
     margin: 0;
     font-size: 26px;
     font-weight: 700;
-    color: #3a2f25; /* café oscuro */
+    color: #3a2f25;
 }
 
-/* CARDS */
+
 .cards {
     display: flex;
     gap: 20px;
@@ -32,7 +32,7 @@
 
 .card {
     flex: 1;
-    background: #fff8f0; /* crema/café suave para diferenciar */
+    background: #fff8f0; 
     border: 1px solid #e0d6c8;
     border-radius: 10px;
     padding: 20px;
@@ -42,27 +42,27 @@
 
 .card h3 {
     font-size: 16px;
-    color: #5a4632; /* café oscuro */
+    color: #5a4632; 
     margin-bottom: 8px;
 }
 
 .card h2 {
     font-size: 28px;
     margin: 0;
-    color: #E31837; /* rojo corporativo */
+    color: #E31837; 
 }
 
 .card p {
     font-size: 13px;
-    color: #7a6a58; /* café medio */
+    color: #7a6a58; 
 }
 
-/* FORM */
+
 .form {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background: #fff8f0; /* crema/café suave */
+    background: #fff8f0; 
     border: 1px solid #e0d6c8;
     border-radius: 10px;
     padding: 20px;
@@ -75,7 +75,7 @@
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 14px;
-    background-color: #fff; /* contraste limpio */
+    background-color: #fff; 
 }
 
 .form button {
@@ -92,7 +92,7 @@
     background: #c5142f;
 }
 
-/* SEARCH */
+
 .search {
     width: 300px;
     padding: 8px;
@@ -101,14 +101,14 @@
     border-radius: 6px;
 }
 
-/* TABLE */
+
 .table-container {
     max-height: 400px;
     overflow-y: auto;
     margin-bottom: 30px;
     border: 1px solid #eee;
     border-radius: 8px;
-    background-color: #fff; /* tabla blanca para contraste */
+    background-color: #fff; 
 }
 
 table {
@@ -120,7 +120,7 @@ table {
 th {
     text-align: left;
     padding: 12px;
-    background: #f5f0eb; /* crema más oscuro para encabezados */
+    background: #f5f0eb; 
     font-weight: bold;
     color: #3a2f25;
     text-transform: uppercase;
@@ -133,7 +133,7 @@ td {
     font-size: 14px;
 }
 
-/* ACTION BUTTONS */
+
 td button {
     margin-right: 8px;
     padding: 6px 12px;
@@ -160,7 +160,7 @@ td button:last-child:hover {
     background: #999;
 }
 
-/* ROLE BADGES */
+
 .role-badge {
     display: inline-block;
     padding: 6px 12px;
@@ -171,20 +171,20 @@ td button:last-child:hover {
 }
 
 .role-badge.admin {
-    background-color: #f5e6d3; /* crema café */
-    color: #6b3e26;           /* café oscuro */
+    background-color: #f5e6d3; 
+    color: #6b3e26;           
     border: 1px solid #d9b99b;
 }
 
 .role-badge.pm {
-    background-color: #e0f7e9; /* verde suave */
-    color: #1b5e20;            /* verde oscuro */
+    background-color: #e0f7e9; 
+    color: #1b5e20;            
     border: 1px solid #a5d6a7;
 }
 
 .role-badge.viewer {
-    background-color: #e3f2fd; /* azul claro */
-    color: #0d47a1;            /* azul fuerte */
+    background-color: #e3f2fd; 
+    color: #0d47a1;            
     border: 1px solid #90caf9;
 }
 
@@ -194,7 +194,7 @@ td button:last-child:hover {
     border: 1px solid #bdbdbd;
 }
 
-/* STATUS BADGES */
+
 .status-badge {
     display: inline-block;
     padding: 6px 12px;
@@ -204,13 +204,13 @@ td button:last-child:hover {
 }
 
 .status-badge.Active {
-    background-color: #c8e6c9; /* verde claro */
-    color: #2e7d32;           /* verde fuerte */
+    background-color: #c8e6c9; 
+    color: #2e7d32;           
     border: 1px solid #81c784;
 }
 
 .status-badge.Inactive {
-    background-color: #fff9c4; /* amarillo claro */
-    color: #f57f17;            /* amarillo fuerte */
+    background-color: #fff9c4; 
+    color: #f57f17;            
     border: 1px solid #fbc02d;
 }

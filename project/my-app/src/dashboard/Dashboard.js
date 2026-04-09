@@ -59,7 +59,7 @@ function Dashboard({ onLogin, onLogout }) {
 
   const safeProjects = Array.isArray(projects) ? projects : [];
 
-  // ===== Vista: Create =====
+
   if (view === 'create') {
     return (
       <div style={wrap}>
@@ -71,7 +71,7 @@ function Dashboard({ onLogin, onLogout }) {
     );
   }
 
-  // ===== Vista: Users =====
+
   if (view === 'users') {
     return (
       <div style={wrap}>
@@ -83,7 +83,7 @@ function Dashboard({ onLogin, onLogout }) {
     );
   }
 
-  // ===== Vista: Projects =====
+
   if (view === 'projects') {
     return (
       <div style={wrap}>
@@ -136,7 +136,7 @@ function Dashboard({ onLogin, onLogout }) {
     );
   }
 
-  // ===== Placeholder para otras vistas =====
+
   return (
     <div style={wrap}>
       <Sidebar active={view} onNavigate={handleNavigate} />
