@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 
 const secretKey = process.env.JWT_SECRET;
 
-async function login(req, res) { 
+async function login(req, res) {
   try{
     const {email_user, password} = req.body;
 
@@ -18,27 +18,34 @@ async function login(req, res) {
     if (error_login || !data_login) {
       return res.status(401).json({ message: 'User not found' });
     }
-    if (await argon2.verify(data_login.password_hash, password)){
-      const token = jwt.sign({ id: data_login.id_user }, secretKey, { expiresIn: "1h" })
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: false,
-        maxAge: 3600000,
-        sameSite: 'lax'
-      })
 
+    if (await argon2.verify(data_login.password_hash, password)){
       const { data: roleData } = await supabase
         .from('role')
         .select('status')
         .eq('id_user', data_login.id_user)
         .single();
 
+      const role = roleData?.status || 'viewer';
+
+      const token = jwt.sign(
+        { id: data_login.id_user, role, username: data_login.username },
+        secretKey,
+        { expiresIn: "1h" }
+      );
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: false,
+        maxAge: 3600000,
+        sameSite: 'lax'
+      });
+
       return res.status(200).json({
         message: 'Login success',
         id_user: data_login.id_user,
         username: data_login.username,
         email: data_login.email,
-        role: roleData?.status || null,
+        role,
       });
     }
     else{
@@ -53,12 +60,14 @@ function verify_token(req, res){
   const token = req.cookies?.token
 
   if(!token) {
-    return res.status(401).json({message: "Token not provied"})
+    return res.status(401).json({message: "Token not provided"})
   }
   try{
     const payload = jwt.verify(token, secretKey);
-    return res.status(200).json({ message: "You have access", user: payload });
-
+    return res.status(200).json({
+      message: "You have access",
+      user: { id: payload.id, role: payload.role, username: payload.username }
+    });
   } catch(error){
     return res.status(403).json({message: "Token not valid"})
   }
@@ -68,7 +77,7 @@ async function register(req, res){
   const {email, username, password} = req.body
 
   const hash = await argon2.hash(password)
-  
+
   const {data, error} = await supabase
     .from('users')
     .insert({email: email, username: username, password_hash: hash})
@@ -90,9 +99,8 @@ async function register(req, res){
     return res.status(500).json({ message: 'Role not applied' });
   }
 
-  res.status(201).json({ message: 'Usuario creado', user: data[0] }); 
+  res.status(201).json({ message: 'Usuario creado', user: data[0] });
 }
-
 
 function logout(req, res) {
   res.clearCookie('token');
