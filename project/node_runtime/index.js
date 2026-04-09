@@ -6,6 +6,8 @@ const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./src/auth/auth.routes');
 const projectRoutes = require('./src/projects/projects.routes');
+const userRoutes = require('./src/users/users.routes');
+
 
 const app = express();
 
@@ -20,6 +22,8 @@ app.use(cookieParser());
 // Routes
 app.use('/auth', authRoutes);
 app.use('/projects', projectRoutes);
+app.use('/users', userRoutes);
+
 
 // Server
 const PORT = process.env.PORT || 8080;
@@ -28,3 +32,4 @@ app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
     console.log('Press Ctrl+C to quit.');
 });
+

@@ -6,17 +6,24 @@ const {
     getManagers,
     getViewers,
     createProject,
-    deleteProject,
+    getProjectViewers,
+    addViewerToProject,
+    removeViewerFromProject,
 } = require('./projects.controller');
 
 const { authUser, requireRole } = require('../middleware/auth');
 
-// Lectura: cualquier usuario autenticado
+// Lectura: cualquier usuario autenticado (filtrado por rol en controller - CA-04)
 router.get('/', authUser, getProjects);
 
-// Catálogos para el formulario: solo admin y PM pueden ver candidatos
-router.get('/managers', authUser, requireRole('admin', 'pm', 'project_manager'), getManagers);
-router.get('/viewers', authUser, requireRole('admin', 'pm', 'project_manager'), getViewers);
-router.post('/create', authUser, requireRole('admin', 'pm', 'project_manager'), createProject);
-router.delete('/:id', authUser, requireRole('admin', 'pm', 'project_manager'), deleteProject);
+// Catálogos para formularios: solo admin y PM
+router.get('/managers', authUser, requireRole('admin', 'pm'), getManagers);
+router.get('/viewers', authUser, requireRole('admin', 'pm'), getViewers);
+router.post('/create', authUser, requireRole('admin', 'pm'), createProject);
+
+// HU-08: gestión de viewers en proyectos existentes
+router.get('/:id/viewers', authUser, requireRole('admin', 'pm'), getProjectViewers);
+router.post('/:id/viewers', authUser, requireRole('admin', 'pm'), addViewerToProject);
+router.delete('/:id/viewers/:viewer_id', authUser, requireRole('admin', 'pm'), removeViewerFromProject);
+
 module.exports = router;
