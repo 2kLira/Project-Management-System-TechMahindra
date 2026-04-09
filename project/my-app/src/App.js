@@ -2,53 +2,45 @@ import { useState } from 'react';
 import Login from './auth/Login';
 import Dashboard from './dashboard/Dashboard';
 import './App.css';
- 
- 
+
+
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
- 
-  function handleLogin() {
-    setIsLoggedIn(true);
+  const [user, setUser] = useState(null);
+
+  function handleLogin(userData) {
+    setUser(userData);
   }
- 
+
   function handleLogout() {
-    setIsLoggedIn(false);
+    setUser(null);
   }
- 
-  // =====================================================
-  // Cuando el usuario YA está logeado => layout del app
-  // (sidebar propio por vista, sin el grid 1fr 2fr del login)
-  // =====================================================
-  if (isLoggedIn) {
+
+  if (user) {
     return (
       <div className="app-layout-app">
-        <Dashboard onLogout={handleLogout} />
+        <Dashboard user={user} onLogout={handleLogout} />
       </div>
     );
   }
- 
-  // =====================================================
-  // Cuando NO está logeado => layout de login/register
-  // (grid con aside promocional + formulario)
-  // =====================================================
+
   return (
     <div className="app-layout-auth">
       <aside className='app-aside'>
         <div className='app-brand'>
           <div className='app-box'></div>
           <div className='app-businessname'>
-            <h6 style={{ color: 'white' }}>Tech</h6>
-            <h5 style={{ color: '#E31837' }}>mahindra</h5>
+            <h6 style={{color: 'white'}}>Tech</h6>
+            <h5 style={{color: '#E31837'}}>mahindra</h5>
           </div>
         </div>
         <div className='app-middle'>
           <div className='app-title'>
-            <h1 style={{ color: 'white' }}>Project</h1>
-            <h1 style={{ color: '#E31837' }}>Management</h1>
-            <h1 style={{ color: 'white' }}>System</h1>
+            <h1 style={{color: 'white'}}>Project</h1>
+            <h1 style={{color: '#E31837'}}>Management</h1>
+            <h1 style={{color: 'white'}}>System</h1>
           </div>
           <div className='app-description'>
-            <p style={{ color: '#F6F2EA99' }}>Real-time Scrum tracking with automated risk scoring, progress monitoring, and team gamification.</p>
+            <p style={{color: '#F6F2EA99'}}>Real-time Scrum tracking with automated risk scoring, progress monitoring, and team gamification.</p>
           </div>
           <div className='app-decorativelineal app-decorative-position1'></div>
           <div className='app-decorativelineal app-decorative-position2'></div>
@@ -65,12 +57,11 @@ function App() {
           <li>Automated alerts & audit log</li>
         </ul>
       </aside>
- 
       <main className='app-content'>
         <Login onLogin={handleLogin} />
       </main>
     </div>
   );
 }
- 
+
 export default App;
