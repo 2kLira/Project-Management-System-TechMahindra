@@ -28,11 +28,13 @@ async function authUser(req, res, next) {
             return res.status(401).json({ message: 'Invalid token. User not found.' });
         }
 
+        const roleData = Array.isArray(user.role) ? user.role[0] : user.role;
+
         req.user = {
             id_user: user.id_user,
             username: user.username,
             email: user.email,
-            role: user.role?.status || null
+            role: roleData?.status || null
         };
 
         next();
