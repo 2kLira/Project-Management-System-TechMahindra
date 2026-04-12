@@ -31,7 +31,7 @@ function Dashboard({ user, onLogout }) {
             <div style={wrap}>
                 <Sidebar active="users" onNavigate={setView} />
                 <main style={mainStyle}>
-                    <UserManagement onBack={() => setView('projects')} />
+                    <UserManagement currentUser={user} onBack={() => setView('projects')} />
                 </main>
             </div>
         );
