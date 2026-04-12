@@ -30,7 +30,7 @@ export default function UserManagement() {
     const { res, data } = await api.post('/users', form);
 
     if (!res.ok) {
-      alert(data.error);
+      alert(data.error || data.message || 'Error creating user');
       return;
     }
 
