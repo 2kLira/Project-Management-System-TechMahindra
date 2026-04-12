@@ -83,9 +83,9 @@ function ProjectList({ user }) {
 
     return (
         <div>
-            <h1 style={s.title}>Projects</h1>
+            <h1 style={s.title}>Proyectos</h1>
             <p style={s.subtitle}>
-                {user?.role === 'viewer' ? 'Projects you are assigned to.' : 'All projects you manage.'}
+                {user?.role === 'viewer' ? 'Proyectos a los que estás asignado.' : 'Todos los proyectos que gestionas.'}
             </p>
 
             {loadError && <div style={s.errorBox}>{loadError}</div>}
@@ -112,23 +112,23 @@ function ProjectList({ user }) {
                                 </div>
                                 {isPM && isOwner && (
                                     <button style={s.btnSecondary} onClick={() => toggleExpand(project.id_project)}>
-                                        {isExpanded ? 'Hide Viewers' : 'Manage Viewers'}
+                                        {isExpanded ? 'Ocultar visores' : 'Gestionar visores'}
                                     </button>
                                 )}
                             </div>
 
                             {isExpanded && isPM && isOwner && (
                                 <div style={s.cardBody}>
-                                    <div style={s.sectionLabel}>VIEWERS ({viewers.length})</div>
+                                    <div style={s.sectionLabel}>VISORES ({viewers.length})</div>
 
                                     {viewers.length === 0 ? (
-                                        <div style={s.emptyMsg}>No viewers linked yet.</div>
+                                        <div style={s.emptyMsg}>Sin visores asignados.</div>
                                     ) : (
                                         viewers.map(v => (
                                             <div key={v.id_user} style={s.viewerRow}>
                                                 <span>{v.username} <span style={{ color: '#AAA' }}>· {v.email}</span></span>
                                                 <button style={s.btnDanger} onClick={() => removeViewer(project.id_project, v.id_user)}>
-                                                    Remove
+                                                    Quitar
                                                 </button>
                                             </div>
                                         ))
@@ -143,7 +143,7 @@ function ProjectList({ user }) {
                                                 [project.id_project]: e.target.value
                                             }))}
                                         >
-                                            <option value="">— Add viewer —</option>
+                                            <option value="">— Agregar visor —</option>
                                             {availableViewers.map(v => (
                                                 <option key={v.id_user} value={v.id_user}>
                                                     {v.username} · {v.email}
@@ -155,7 +155,7 @@ function ProjectList({ user }) {
                                             onClick={() => addViewer(project.id_project)}
                                             disabled={loadingAdd === project.id_project}
                                         >
-                                            {loadingAdd === project.id_project ? '...' : 'Add'}
+                                            {loadingAdd === project.id_project ? '...' : 'Agregar'}
                                         </button>
                                     </div>
                                 </div>
