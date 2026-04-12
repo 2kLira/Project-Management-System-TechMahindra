@@ -28,12 +28,12 @@ function App() {
                 </div>
                 <div className='app-middle'>
                     <div className='app-title'>
-                        <h1 style={{color: 'white'}}>Project</h1>
-                        <h1 style={{color: '#E31837'}}>Management</h1>
-                        <h1 style={{color: 'white'}}>System</h1>
+                        <h1 style={{color: 'white'}}>Sistema de</h1>
+                        <h1 style={{color: '#E31837'}}>Gestión</h1>
+                        <h1 style={{color: 'white'}}>de Proyectos</h1>
                     </div>
                     <div className='app-description'>
-                        <p style={{color: '#F6F2EA99'}}>Real-time Scrum tracking with automated risk scoring, progress monitoring, and team gamification.</p>
+                        <p style={{color: '#F6F2EA99'}}>Seguimiento Scrum en tiempo real con puntuación de riesgo automatizada, monitoreo de avance y gamificación de equipo.</p>
                     </div>
                     <div className='app-decorativelineal app-decorative-position1'></div>
                     <div className='app-decorativelineal app-decorative-position2'></div>
@@ -43,11 +43,11 @@ function App() {
                     <div className='app-decorativelineal app-decorative-position6'></div>
                 </div>
                 <ul className='app-list'>
-                    <li>Real-time risk score & semaphore</li>
-                    <li>Planned vs Actual progress charts</li>
-                    <li>Sprint & backlog management</li>
-                    <li>Team gamification & leaderboard</li>
-                    <li>Automated alerts & audit log</li>
+                    <li>Puntuación de riesgo y semáforo en tiempo real</li>
+                    <li>Gráficas Planeado vs Real</li>
+                    <li>Gestión de sprints y backlog</li>
+                    <li>Gamificación y tabla de líderes</li>
+                    <li>Alertas automáticas y bitácora de auditoría</li>
                 </ul>
             </aside>
             <main className='app-content'>

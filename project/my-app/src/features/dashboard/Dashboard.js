@@ -45,19 +45,19 @@ function Dashboard({ user, onLogout }) {
                     <div style={s.page}>
                         <div style={s.topBar}>
                             <div style={s.breadcrumb}>
-                                <span>Dashboard</span>
+                                <span>Inicio</span>
                                 <span style={{ color: '#CCC' }}>/</span>
-                                <span style={{ color: '#1A1A1A', fontWeight: 500 }}>Projects</span>
+                                <span style={{ color: '#1A1A1A', fontWeight: 500 }}>Proyectos</span>
                             </div>
                             <div style={{ display: 'flex', gap: 12 }}>
-                                <button style={s.btnSecondary} onClick={log_out}>Log out</button>
+                                <button style={s.btnSecondary} onClick={log_out}>Cerrar sesión</button>
                                 {isPM && (
                                     <>
                                         <button style={s.btnPrimary} onClick={() => setView('create')}>
-                                            + New Project
+                                            + Nuevo proyecto
                                         </button>
                                         <button style={s.btnSecondary} onClick={() => setView('users')}>
-                                            User Management
+                                            Gestión de usuarios
                                         </button>
                                     </>
                                 )}
@@ -81,11 +81,11 @@ function Dashboard({ user, onLogout }) {
                         <div style={s.breadcrumb}>
                             <span style={{ color: '#1A1A1A', fontWeight: 500, textTransform: 'capitalize' }}>{view}</span>
                         </div>
-                        <button style={s.btnSecondary} onClick={log_out}>Log out</button>
+                        <button style={s.btnSecondary} onClick={log_out}>Cerrar sesión</button>
                     </div>
                     <div style={s.body}>
                         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>{view.charAt(0).toUpperCase() + view.slice(1)}</h1>
-                        <p style={{ fontSize: 13, color: '#888' }}>Esta vista todavia no esta implementada.</p>
+                        <p style={{ fontSize: 13, color: '#888' }}>Esta vista aún no está implementada.</p>
                     </div>
                 </div>
             </main>

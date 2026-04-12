@@ -464,21 +464,21 @@ function CreateProject({ onCancel }) {
             {/* top bar */}
             <div style={styles.topBar}>
                 <div style={styles.breadcrumb}>
-                    <span>Dashboard</span>
+                    <span>Inicio</span>
                     <span style={styles.breadcrumbSep}>/</span>
-                    <span>Projects</span>
+                    <span>Proyectos</span>
                     <span style={styles.breadcrumbSep}>/</span>
-                    <span style={styles.breadcrumbActive}>New Project</span>
+                    <span style={styles.breadcrumbActive}>Nuevo proyecto</span>
                 </div>
                 <div style={styles.topActions}>
-                    <button style={styles.btnSecondary} onClick={onCancel}>Discard</button>
+                    <button style={styles.btnSecondary} onClick={onCancel}>Descartar</button>
                     <button
                         style={styles.btnPrimary}
                         onClick={handleSubmit}
                         disabled={loading}
                     >
                         {loading && <span style={styles.spinner} />}
-                        Save Project
+                        Guardar proyecto
                     </button>
                 </div>
             </div>
@@ -486,8 +486,8 @@ function CreateProject({ onCancel }) {
             {/* contenido principal (sin sidebar interno) */}
             <div style={styles.main}>
 
-                <div style={styles.pageTitle}>Create New Project</div>
-                <div style={styles.pageSubtitle}>Complete all required fields before saving.</div>
+                <div style={styles.pageTitle}>Crear nuevo proyecto</div>
+                <div style={styles.pageSubtitle}>Completa todos los campos obligatorios antes de guardar.</div>
 
                 {mensaje.text && (
                     <div style={mensaje.type === 'success' ? styles.msgSuccess : styles.msgError}>
@@ -503,27 +503,27 @@ function CreateProject({ onCancel }) {
                         {/* Project Information */}
                         <div style={styles.card}>
                             <div style={styles.cardHeader}>
-                                <span style={styles.cardTitle}>Project Information</span>
-                                <span style={styles.cardNote}>RF-04 · Name must be unique</span>
+                                <span style={styles.cardTitle}>Información del proyecto</span>
+                                <span style={styles.cardNote}>RF-04 · El nombre debe ser único</span>
                             </div>
                             <div style={styles.cardBody}>
                                 <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr' }}>
                                     <div style={styles.fieldGroup}>
                                         <label style={styles.label}>
-                                            Project Name <span style={styles.required}>*</span>
+                                            Nombre del proyecto <span style={styles.required}>*</span>
                                         </label>
                                         <input
                                             style={styles.input(errors.name)}
                                             name="name"
                                             value={form.name}
                                             onChange={handleChange}
-                                            placeholder="Alpha Banking Portal"
+                                            placeholder="Portal Bancario Alpha"
                                         />
                                         {errors.name && <span style={styles.fieldError}>{errors.name}</span>}
                                     </div>
                                     <div style={styles.fieldGroup}>
                                         <label style={styles.label}>
-                                            Project Status <span style={styles.required}>*</span>
+                                            Estado del proyecto <span style={styles.required}>*</span>
                                         </label>
                                         <select
                                             style={styles.select(false)}
@@ -531,18 +531,18 @@ function CreateProject({ onCancel }) {
                                             value={form.status}
                                             onChange={handleChange}
                                         >
-                                            <option value="planning">Planning</option>
-                                            <option value="active">Active</option>
-                                            <option value="on_hold">On Hold</option>
-                                            <option value="completed">Completed</option>
-                                            <option value="cancelled">Cancelled</option>
+                                            <option value="planning">Planeación</option>
+                                            <option value="active">Activo</option>
+                                            <option value="on_hold">En pausa</option>
+                                            <option value="completed">Completado</option>
+                                            <option value="cancelled">Cancelado</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div style={styles.fieldGroup}>
                                     <label style={styles.label}>
-                                        Client <span style={styles.required}>*</span>
+                                        Cliente <span style={styles.required}>*</span>
                                     </label>
                                     <input
                                         style={styles.input(errors.client)}
@@ -559,14 +559,14 @@ function CreateProject({ onCancel }) {
                         {/* Timeline */}
                         <div style={styles.card}>
                             <div style={styles.cardHeader}>
-                                <span style={styles.cardTitle}>Timeline</span>
-                                <span style={styles.cardNote}>Deadline must be after start date</span>
+                                <span style={styles.cardTitle}>Fechas</span>
+                                <span style={styles.cardNote}>El deadline debe ser posterior a la fecha de inicio</span>
                             </div>
                             <div style={styles.cardBody}>
                                 <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr' }}>
                                     <div style={styles.fieldGroup}>
                                         <label style={styles.label}>
-                                            Start Date <span style={styles.required}>*</span>
+                                            Fecha de inicio <span style={styles.required}>*</span>
                                         </label>
                                         <input
                                             type="date"
@@ -592,7 +592,7 @@ function CreateProject({ onCancel }) {
                                     </div>
                                 </div>
                                 {duration !== '-' && (
-                                    <div style={styles.hint}>Duration: {duration}</div>
+                                    <div style={styles.hint}>Duración: {duration}</div>
                                 )}
                             </div>
                         </div>
@@ -600,13 +600,13 @@ function CreateProject({ onCancel }) {
                         {/* Budget & Story Points */}
                         <div style={styles.card}>
                             <div style={styles.cardHeader}>
-                                <span style={styles.cardTitle}>Budget & Story Points</span>
-                                <span style={styles.cardNote}>RF-04 · Financial data (Admin & PM only)</span>
+                                <span style={styles.cardTitle}>Presupuesto y Story Points</span>
+                                <span style={styles.cardNote}>RF-04 · Datos financieros (solo Admin y PM)</span>
                             </div>
                             <div style={styles.cardBody}>
                                 <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr 1fr' }}>
                                     <div style={styles.fieldGroup}>
-                                        <label style={styles.label}>Estimated Budget (USD)</label>
+                                        <label style={styles.label}>Presupuesto estimado (USD)</label>
                                         <input
                                             style={styles.input(errors.budget)}
                                             name="budget"
@@ -617,7 +617,7 @@ function CreateProject({ onCancel }) {
                                         {errors.budget && <span style={styles.fieldError}>{errors.budget}</span>}
                                     </div>
                                     <div style={styles.fieldGroup}>
-                                        <label style={styles.label}>Monthly Cost Estimate</label>
+                                        <label style={styles.label}>Costo mensual estimado</label>
                                         <input
                                             style={styles.input(errors.monthly_cost)}
                                             name="monthly_cost"
@@ -628,7 +628,7 @@ function CreateProject({ onCancel }) {
                                         {errors.monthly_cost && <span style={styles.fieldError}>{errors.monthly_cost}</span>}
                                     </div>
                                     <div style={styles.fieldGroup}>
-                                        <label style={styles.label}>Total Planned Story Points</label>
+                                        <label style={styles.label}>Story Points planeados</label>
                                         <input
                                             style={styles.input(errors.story_points)}
                                             name="story_points"
@@ -645,13 +645,13 @@ function CreateProject({ onCancel }) {
                         {/* Team Assignment */}
                         <div style={styles.card}>
                             <div style={styles.cardHeader}>
-                                <span style={styles.cardTitle}>Team Assignment</span>
-                                <span style={styles.cardNote}>RF-05 · Exactly one PM required</span>
+                                <span style={styles.cardTitle}>Asignación de equipo</span>
+                                <span style={styles.cardNote}>RF-05 · Se requiere exactamente un PM</span>
                             </div>
                             <div style={styles.cardBody}>
                                 <div style={{ ...styles.fieldGroup, marginBottom: '16px' }}>
                                     <label style={styles.label}>
-                                        Project Manager <span style={styles.required}>* (required)</span>
+                                        Gerente de proyecto <span style={styles.required}>* (obligatorio)</span>
                                     </label>
                                     <select
                                         style={styles.select(errors.pm_id)}
@@ -659,7 +659,7 @@ function CreateProject({ onCancel }) {
                                         value={form.pm_id}
                                         onChange={handleChange}
                                     >
-                                        <option value="">— Select a Project Manager —</option>
+                                        <option value="">— Selecciona un gerente de proyecto —</option>
                                         {pms.map(pm => (
                                             <option key={pm.id_user} value={pm.id_user}>
                                                 {pm.username} · {pm.email}
@@ -673,13 +673,13 @@ function CreateProject({ onCancel }) {
                                 </div>
 
                                 <div style={styles.fieldGroup}>
-                                    <label style={styles.label}>Add Viewers (optional)</label>
+                                    <label style={styles.label}>Agregar visores (opcional)</label>
                                     <select
                                         style={styles.select(false)}
                                         onChange={addViewer}
                                         defaultValue=""
                                     >
-                                        <option value="">— Add a viewer —</option>
+                                        <option value="">— Agregar un visor —</option>
                                         {viewers_available.map(v => (
                                             <option key={v.id_user} value={v.id_user}>
                                                 {v.username} · {v.email}
@@ -702,7 +702,7 @@ function CreateProject({ onCancel }) {
                                     )}
 
                                     <span style={styles.hint}>
-                                        {selectedViewers.length} assigned
+                                        {selectedViewers.length} asignados
                                     </span>
                                 </div>
                             </div>
@@ -713,23 +713,23 @@ function CreateProject({ onCancel }) {
                     {/* columna derecha - resumen */}
                     <div>
                         <div style={styles.summary}>
-                            <div style={styles.summaryHeader}>Project Summary</div>
+                            <div style={styles.summaryHeader}>Resumen del proyecto</div>
                             <div style={styles.summaryBody}>
                                 {[
-                                    { key: 'Name', val: form.name || '—' },
-                                    { key: 'Client', val: form.client || '—' },
-                                    { key: 'Timeline', val: form.start_date && form.deadline ? `${form.start_date} → ${form.deadline}` : '—' },
-                                    { key: 'Budget', val: form.budget ? `$${parseInt(form.budget).toLocaleString()}` : '—' },
-                                    { key: 'Monthly Cost', val: form.monthly_cost ? `$${parseInt(form.monthly_cost).toLocaleString()}` : '—' },
+                                    { key: 'Nombre', val: form.name || '—' },
+                                    { key: 'Cliente', val: form.client || '—' },
+                                    { key: 'Fechas', val: form.start_date && form.deadline ? `${form.start_date} → ${form.deadline}` : '—' },
+                                    { key: 'Presupuesto', val: form.budget ? `$${parseInt(form.budget).toLocaleString()}` : '—' },
+                                    { key: 'Costo mensual', val: form.monthly_cost ? `$${parseInt(form.monthly_cost).toLocaleString()}` : '—' },
                                     { key: 'Story Points', val: form.story_points ? `${form.story_points} SP` : '—' },
-                                    { key: 'PM Assigned', val: selectedPM ? `✓ ${selectedPM.username}` : '—' },
-                                    { key: 'Viewers', val: selectedViewers.length > 0 ? `${selectedViewers.length} assigned` : '—' },
+                                    { key: 'PM asignado', val: selectedPM ? `✓ ${selectedPM.username}` : '—' },
+                                    { key: 'Visores', val: selectedViewers.length > 0 ? `${selectedViewers.length} asignados` : '—' },
                                 ].map(({ key, val }) => (
                                     <div key={key} style={styles.summaryRow}>
                                         <span style={styles.summaryKey}>{key}</span>
                                         <span style={{
                                             ...styles.summaryVal,
-                                            color: key === 'PM Assigned' && selectedPM ? '#2E7D32' : '#1A1A1A'
+                                            color: key === 'PM asignado' && selectedPM ? '#2E7D32' : '#1A1A1A'
                                         }}>{val}</span>
                                     </div>
                                 ))}
@@ -737,7 +737,7 @@ function CreateProject({ onCancel }) {
 
                             <div style={styles.validationBox}>
                                 <div style={{ fontSize: '10px', fontWeight: '600', color: '#AAA', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                                    Validation Rules
+                                    Reglas de validación
                                 </div>
                                 {caChecks.map(({ label, ok }) => (
                                     <div key={label} style={styles.validItem(ok)}>
@@ -754,7 +754,7 @@ function CreateProject({ onCancel }) {
                                     disabled={loading}
                                 >
                                     {loading && <span style={styles.spinner} />}
-                                    Save Project
+                                    Guardar proyecto
                                 </button>
                             </div>
                         </div>
