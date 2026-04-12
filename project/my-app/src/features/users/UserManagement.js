@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import api from '../../config/api';
 import './UserManagement.css';
 
-export default function UserManagement() {
+export default function UserManagement({ currentUser }) {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState(null);
@@ -207,41 +207,59 @@ export default function UserManagement() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map(u => (
-              <tr key={u.id_user} className="um-row">
-                <td className="um-cell-user">
-                  <div className="um-avatar">{getInitials(u.full_name, u.email)}</div>
-                  <div className="um-user-info">
-                    <span className="um-user-name">{u.full_name && u.full_name !== 'N/A' ? u.full_name : u.email}</span>
-                    <span className="um-user-email">{u.full_name && u.full_name !== 'N/A' ? u.email : ''}</span>
-                  </div>
-                </td>
-                <td>
-                  <select
-                    className={`um-select-role um-role--${u.role?.status || 'default'} ${saving[u.id_user + '_role'] ? 'um-saving' : ''}`}
-                    value={u.role?.status || ''}
-                    onChange={e => handleRoleChange(u, e.target.value)}
-                    disabled={saving[u.id_user + '_role']}
-                  >
-                    <option value="admin">Admin</option>
-                    <option value="pm">PM</option>
-                    <option value="viewer">Viewer</option>
-                  </select>
-                </td>
-                <td>
-                  <select
-                    className={`um-select-status um-status--${u.status} ${saving[u.id_user + '_status'] ? 'um-saving' : ''}`}
-                    value={u.status || 'Active'}
-                    onChange={e => handleStatusChange(u, e.target.value)}
-                    disabled={saving[u.id_user + '_status']}
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </td>
-                <td className="um-cell-date">{formatDate(u.last_login)}</td>
-              </tr>
-            ))}
+            {filteredUsers.map(u => {
+              const isSelf = currentUser && u.id_user === currentUser.id;
+              return (
+                <tr key={u.id_user} className={`um-row${isSelf ? ' um-row--self' : ''}`}>
+                  <td className="um-cell-user">
+                    <div className={`um-avatar${isSelf ? ' um-avatar--self' : ''}`}>{getInitials(u.full_name, u.email)}</div>
+                    <div className="um-user-info">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span className="um-user-name">{u.full_name && u.full_name !== 'N/A' ? u.full_name : u.email}</span>
+                        {isSelf && <span className="um-you-badge">You</span>}
+                      </div>
+                      <span className="um-user-email">{u.full_name && u.full_name !== 'N/A' ? u.email : ''}</span>
+                    </div>
+                  </td>
+                  <td>
+                    {isSelf ? (
+                      <span className={`um-select-role um-role--${u.role?.status || 'default'} um-badge-readonly`}>
+                        {u.role?.status === 'admin' ? 'Admin' : u.role?.status === 'pm' ? 'PM' : 'Viewer'}
+                      </span>
+                    ) : (
+                      <select
+                        className={`um-select-role um-role--${u.role?.status || 'default'} ${saving[u.id_user + '_role'] ? 'um-saving' : ''}`}
+                        value={u.role?.status || ''}
+                        onChange={e => handleRoleChange(u, e.target.value)}
+                        disabled={saving[u.id_user + '_role']}
+                      >
+                        <option value="admin">Admin</option>
+                        <option value="pm">PM</option>
+                        <option value="viewer">Viewer</option>
+                      </select>
+                    )}
+                  </td>
+                  <td>
+                    {isSelf ? (
+                      <span className={`um-select-status um-status--${u.status} um-badge-readonly`}>
+                        {u.status}
+                      </span>
+                    ) : (
+                      <select
+                        className={`um-select-status um-status--${u.status} ${saving[u.id_user + '_status'] ? 'um-saving' : ''}`}
+                        value={u.status || 'Active'}
+                        onChange={e => handleStatusChange(u, e.target.value)}
+                        disabled={saving[u.id_user + '_status']}
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
+                    )}
+                  </td>
+                  <td className="um-cell-date">{formatDate(u.last_login)}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
