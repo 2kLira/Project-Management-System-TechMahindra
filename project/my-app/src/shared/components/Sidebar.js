@@ -14,15 +14,15 @@ function Sidebar(props) {
     const onNavigate = props.onNavigate || function () {};
 
     const items = [
-        { key: 'dashboard', label: 'Dashboard',   icon: 'dashboard', section: 'overview' },
-        { key: 'projects',  label: 'Projects',    icon: 'projects',  section: 'overview' },
-        { key: 'users',     label: 'Users',       icon: 'users',     section: 'overview' },
-        { key: 'audit',     label: 'Audit Log',   icon: 'audit',     section: 'intelligence' },
-        { key: 'leader',    label: 'Leaderboard', icon: 'leader',    section: 'intelligence' },
+        { key: 'dashboard', label: 'Inicio',          icon: 'dashboard', section: 'general' },
+        { key: 'projects',  label: 'Proyectos',       icon: 'projects',  section: 'general' },
+        { key: 'users',     label: 'Usuarios',        icon: 'users',     section: 'general' },
+        { key: 'audit',     label: 'Bitácora',        icon: 'audit',     section: 'inteligencia' },
+        { key: 'leader',    label: 'Clasificación',   icon: 'leader',    section: 'inteligencia' },
     ];
 
-    const overview = items.filter(i => i.section === 'overview');
-    const intelligence = items.filter(i => i.section === 'intelligence');
+    const overview = items.filter(i => i.section === 'general');
+    const intelligence = items.filter(i => i.section === 'inteligencia');
 
     return (
         <aside className="sb-sidebar">
@@ -37,7 +37,7 @@ function Sidebar(props) {
             </div>
 
             <div className="sb-section">
-                <div className="sb-section-label">Overview</div>
+                <div className="sb-section-label">General</div>
                 {overview.map(i => (
                     <div
                         key={i.key}
@@ -50,7 +50,7 @@ function Sidebar(props) {
             </div>
 
             <div className="sb-section">
-                <div className="sb-section-label">Intelligence</div>
+                <div className="sb-section-label">Inteligencia</div>
                 {intelligence.map(i => (
                     <div
                         key={i.key}

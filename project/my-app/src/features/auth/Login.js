@@ -8,16 +8,16 @@ function Login({ onLogin }) {
     async function login_proccess() {
         const result = await onLogin(form);
         if (!result.ok) {
-            setMensaje('Login fail');
+            setMensaje('Credenciales incorrectas. Intenta de nuevo.');
         }
     }
 
     return (
         <div className='login-layout'>
             <main className='login-form'>
-                <h1>Sign in</h1>
+                <h1>Iniciar sesión</h1>
                 <div>
-                    <label className='login-credential' htmlFor="EmailUsername">EMAIL ADRESS OR USERNAME</label>
+                    <label className='login-credential' htmlFor="EmailUsername">CORREO O USUARIO</label>
                     <input
                         className='login-input'
                         type="text"
@@ -28,7 +28,7 @@ function Login({ onLogin }) {
                     />
                 </div>
                 <div>
-                    <label className='login-credential' htmlFor="Password">PASSWORD</label>
+                    <label className='login-credential' htmlFor="Password">CONTRASEÑA</label>
                     <input
                         className='login-input'
                         type="password"
@@ -38,7 +38,7 @@ function Login({ onLogin }) {
                         onChange={(e) => setForm({ ...form, password: e.target.value })}
                     />
                 </div>
-                <button className='login-button' onClick={login_proccess}>Login</button>
+                <button className='login-button' onClick={login_proccess}>Entrar</button>
                 <p>{mensaje}</p>
             </main>
         </div>

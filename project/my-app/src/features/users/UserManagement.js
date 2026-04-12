@@ -32,10 +32,10 @@ export default function UserManagement({ currentUser }) {
     const { res } = await api.put(`/users/role/${user.id_user}`, { role: newRole });
     setSaving(s => ({ ...s, [user.id_user + '_role']: false }));
     if (res.ok) {
-      showToast(`Role updated to ${newRole}`);
+      showToast(`Rol actualizado a ${newRole}`);
       fetchUsers();
     } else {
-      showToast('Failed to update role', 'error');
+      showToast('Error al actualizar el rol', 'error');
     }
   };
 
@@ -45,16 +45,16 @@ export default function UserManagement({ currentUser }) {
     const { res } = await api.put(`/users/status/${user.id_user}`, { status: newStatus });
     setSaving(s => ({ ...s, [user.id_user + '_status']: false }));
     if (res.ok) {
-      showToast(`User ${newStatus === 'Active' ? 'activated' : 'deactivated'}`);
+      showToast(`Usuario ${newStatus === 'Active' ? 'activado' : 'desactivado'}`);
       fetchUsers();
     } else {
-      showToast('Failed to update status', 'error');
+      showToast('Error al actualizar el estado', 'error');
     }
   };
 
   const handleCreateUser = async () => {
     if (!form.full_name.trim() || !form.email.trim()) {
-      showToast('Full name and email are required', 'error');
+      showToast('El nombre y el correo son obligatorios', 'error');
       return;
     }
     const { res, data } = await api.post('/users', form);
@@ -62,11 +62,11 @@ export default function UserManagement({ currentUser }) {
       if (data.errors?.length > 0) {
         showToast(data.errors.map(e => e.message).join(' · '), 'error');
       } else {
-        showToast(data.error || data.message || 'Error creating user', 'error');
+        showToast(data.error || data.message || 'Error al crear usuario', 'error');
       }
       return;
     }
-    showToast('User created successfully');
+    showToast('Usuario creado correctamente');
     setForm({ full_name: '', email: '', role: 'viewer' });
     setShowForm(false);
     fetchUsers();
@@ -107,11 +107,11 @@ export default function UserManagement({ currentUser }) {
       {/* Header */}
       <div className="um-header">
         <div>
-          <h1 className="um-title">User Management</h1>
-          <p className="um-subtitle">{totalUsers} users across {totalPM} PMs and {totalViewers} viewers</p>
+          <h1 className="um-title">Gestión de usuarios</h1>
+          <p className="um-subtitle">{totalUsers} usuarios — {totalPM} gerentes y {totalViewers} visores</p>
         </div>
         <button className="um-btn-primary" onClick={() => setShowForm(v => !v)}>
-          {showForm ? 'Cancel' : '+ New User'}
+          {showForm ? 'Cancelar' : '+ Nuevo usuario'}
         </button>
       </div>
 
@@ -119,64 +119,64 @@ export default function UserManagement({ currentUser }) {
       <div className="um-stats">
         <div className="um-stat">
           <span className="um-stat__value">{totalUsers}</span>
-          <span className="um-stat__label">Total Users</span>
+          <span className="um-stat__label">Total usuarios</span>
         </div>
         <div className="um-stat-divider" />
         <div className="um-stat">
           <span className="um-stat__value">{totalPM}</span>
-          <span className="um-stat__label">Project Managers</span>
+          <span className="um-stat__label">Gerentes de proyecto</span>
         </div>
         <div className="um-stat-divider" />
         <div className="um-stat">
           <span className="um-stat__value">{totalViewers}</span>
-          <span className="um-stat__label">Viewers</span>
+          <span className="um-stat__label">Visores</span>
         </div>
         <div className="um-stat-divider" />
         <div className="um-stat">
           <span className="um-stat__value">{users.filter(u => u.status === 'Active').length}</span>
-          <span className="um-stat__label">Active</span>
+          <span className="um-stat__label">Activos</span>
         </div>
       </div>
 
       {/* Create form */}
       {showForm && (
         <div className="um-form-card">
-          <h3 className="um-form-title">New User</h3>
+          <h3 className="um-form-title">Nuevo usuario</h3>
           <div className="um-form-grid">
             <div className="um-field">
-              <label className="um-label">Full Name</label>
+              <label className="um-label">Nombre completo</label>
               <input
                 className="um-input"
-                placeholder="e.g. Mario Burgos"
+                placeholder="ej. Mario Burgos"
                 value={form.full_name}
                 onChange={e => setForm({ ...form, full_name: e.target.value })}
               />
             </div>
             <div className="um-field">
-              <label className="um-label">Email</label>
+              <label className="um-label">Correo electrónico</label>
               <input
                 className="um-input"
-                placeholder="e.g. mario@tec.mx"
+                placeholder="ej. mario@tec.mx"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
               />
             </div>
             <div className="um-field">
-              <label className="um-label">Role</label>
+              <label className="um-label">Rol</label>
               <select
                 className="um-input"
                 value={form.role}
                 onChange={e => setForm({ ...form, role: e.target.value })}
               >
-                <option value="admin">Administrator</option>
-                <option value="pm">Project Manager</option>
-                <option value="viewer">Viewer</option>
+                <option value="admin">Administrador</option>
+                <option value="pm">Gerente de proyecto</option>
+                <option value="viewer">Visor</option>
               </select>
             </div>
           </div>
           <div className="um-form-footer">
-            <p className="um-form-hint">Default password: <code>ChangeMe123!</code></p>
-            <button className="um-btn-primary" onClick={handleCreateUser}>Create User</button>
+            <p className="um-form-hint">Contraseña inicial: <code>ChangeMe123!</code></p>
+            <button className="um-btn-primary" onClick={handleCreateUser}>Crear usuario</button>
           </div>
         </div>
       )}
@@ -187,7 +187,7 @@ export default function UserManagement({ currentUser }) {
           <span className="um-search-icon">⌕</span>
           <input
             className="um-search"
-            placeholder="Search by name or email…"
+            placeholder="Buscar por nombre o correo…"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -200,10 +200,10 @@ export default function UserManagement({ currentUser }) {
         <table className="um-table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Last Login</th>
+              <th>Usuario</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Último acceso</th>
             </tr>
           </thead>
           <tbody>
@@ -216,7 +216,7 @@ export default function UserManagement({ currentUser }) {
                     <div className="um-user-info">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span className="um-user-name">{u.full_name && u.full_name !== 'N/A' ? u.full_name : u.email}</span>
-                        {isSelf && <span className="um-you-badge">You</span>}
+                        {isSelf && <span className="um-you-badge">Tú</span>}
                       </div>
                       <span className="um-user-email">{u.full_name && u.full_name !== 'N/A' ? u.email : ''}</span>
                     </div>
@@ -224,7 +224,7 @@ export default function UserManagement({ currentUser }) {
                   <td>
                     {isSelf ? (
                       <span className={`um-select-role um-role--${u.role?.status || 'default'} um-badge-readonly`}>
-                        {u.role?.status === 'admin' ? 'Admin' : u.role?.status === 'pm' ? 'PM' : 'Viewer'}
+                        {u.role?.status === 'admin' ? 'Admin' : u.role?.status === 'pm' ? 'PM' : 'Visor'}
                       </span>
                     ) : (
                       <select
@@ -235,14 +235,14 @@ export default function UserManagement({ currentUser }) {
                       >
                         <option value="admin">Admin</option>
                         <option value="pm">PM</option>
-                        <option value="viewer">Viewer</option>
+                        <option value="viewer">Visor</option>
                       </select>
                     )}
                   </td>
                   <td>
                     {isSelf ? (
                       <span className={`um-select-status um-status--${u.status} um-badge-readonly`}>
-                        {u.status}
+                        {u.status === 'Active' ? 'Activo' : 'Inactivo'}
                       </span>
                     ) : (
                       <select
@@ -251,8 +251,8 @@ export default function UserManagement({ currentUser }) {
                         onChange={e => handleStatusChange(u, e.target.value)}
                         disabled={saving[u.id_user + '_status']}
                       >
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
+                        <option value="Active">Activo</option>
+                        <option value="Inactive">Inactivo</option>
                       </select>
                     )}
                   </td>
@@ -264,7 +264,7 @@ export default function UserManagement({ currentUser }) {
         </table>
 
         {filteredUsers.length === 0 && (
-          <div className="um-empty">No users match your search.</div>
+          <div className="um-empty">Ningún usuario coincide con tu búsqueda.</div>
         )}
       </div>
     </div>
