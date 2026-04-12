@@ -214,3 +214,72 @@ td button:last-child:hover {
     color: #f57f17;
     border: 1px solid #fbc02d;
 }
+
+
+/* Toast notification */
+.toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 1000;
+    min-width: 280px;
+    max-width: 380px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-left: 4px solid;
+    animation: toastIn 0.25s ease;
+}
+
+.toast-success {
+    border-left-color: #2e7d32;
+}
+
+.toast-error {
+    border-left-color: #E31837;
+}
+
+.toast-icon {
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.toast-success .toast-icon {
+    color: #2e7d32;
+}
+
+.toast-error .toast-icon {
+    color: #E31837;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+    color: #3a2f25;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #7a6a58;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.toast-close:hover {
+    color: #3a2f25;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
