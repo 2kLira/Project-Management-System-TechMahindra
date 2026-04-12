@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import api from '../../config/api';
 import './UserManagement.css';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
+  const [toast, setToast] = useState(null);
 
   const [form, setForm] = useState({
     full_name: '',
     email: '',
     role: 'viewer'
   });
+
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  }, []);
 
   const fetchUsers = async () => {
     try {
@@ -30,21 +36,24 @@ export default function UserManagement() {
     const { res, data } = await api.post('/users', form);
 
     if (!res.ok) {
-      alert(data.error || data.message || 'Error creating user');
+      showToast(data.error || data.message || 'Error creating user', 'error');
       return;
     }
 
-    alert("User created");
+    showToast('User created successfully');
     setForm({ full_name: '', email: '', role: 'viewer' });
     fetchUsers();
   };
 
   const toggleStatus = async (user) => {
     const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
-
-    await api.put(`/users/status/${user.id_user}`, { status: newStatus });
-
-    fetchUsers();
+    const { res } = await api.put(`/users/status/${user.id_user}`, { status: newStatus });
+    if (res.ok) {
+      showToast(`User ${newStatus === 'Active' ? 'activated' : 'deactivated'}`);
+      fetchUsers();
+    } else {
+      showToast('Error updating status', 'error');
+    }
   };
 
   const changeRole = async (user) => {
@@ -76,6 +85,13 @@ export default function UserManagement() {
 
   return (
     <div className="users-container">
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>
+          <span className="toast-icon">{toast.type === 'success' ? '✓' : '✕'}</span>
+          <span className="toast-message">{toast.message}</span>
+          <button className="toast-close" onClick={() => setToast(null)}>×</button>
+        </div>
+      )}
       <div className="users-header">
         <h1>User Management</h1>
       </div>
