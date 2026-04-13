@@ -1,5 +1,9 @@
 const supabase = require('../../supabase');
 
+function normalizeRole(value) {
+    return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
 // =====================================================
 // GET /projects
 // CA-04 (HU-08): filtra proyectos según rol
@@ -39,18 +43,19 @@ async function getProjects(req, res) {
 
 // =====================================================
 // GET /projects/managers
-// Devuelve PMs disponibles (sin proyecto asignado)
+// Devuelve todos los usuarios con rol 'pm'
 // =====================================================
 async function getManagers(req, res) {
     try {
         const { data: roles, error: roleErr } = await supabase
             .from('role')
-            .select('id_user')
-            .eq('status', 'pm');
+            .select('id_user, status');
 
         if (roleErr) return res.status(500).json({ error: roleErr.message });
 
-        const pmIds = roles.map(r => r.id_user);
+        const pmIds = roles
+            .filter(r => normalizeRole(r.status) === 'pm')
+            .map(r => r.id_user);
         if (pmIds.length === 0) return res.status(200).json({ pms: [] });
 
         const { data: users, error: usersErr } = await supabase
@@ -59,17 +64,7 @@ async function getManagers(req, res) {
             .in('id_user', pmIds);
 
         if (usersErr) return res.status(500).json({ error: usersErr.message });
-
-        const { data: busyProjects, error: busyErr } = await supabase
-            .from('project')
-            .select('id_pm');
-
-        if (busyErr) return res.status(500).json({ error: busyErr.message });
-
-        const busyPmSet = new Set(busyProjects.map(p => p.id_pm));
-        const availablePms = users.filter(u => !busyPmSet.has(u.id_user));
-
-        return res.status(200).json({ pms: availablePms });
+        return res.status(200).json({ pms: users });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -83,12 +78,13 @@ async function getViewers(req, res) {
     try {
         const { data: roles, error: roleErr } = await supabase
             .from('role')
-            .select('id_user')
-            .eq('status', 'viewer');
+            .select('id_user, status');
 
         if (roleErr) return res.status(500).json({ error: roleErr.message });
 
-        const viewerIds = roles.map(r => r.id_user);
+        const viewerIds = roles
+            .filter(r => normalizeRole(r.status) === 'viewer')
+            .map(r => r.id_user);
         if (viewerIds.length === 0) return res.status(200).json({ viewers: [] });
 
         const { data: users, error: usersErr } = await supabase
@@ -121,18 +117,51 @@ async function createProject(req, res) {
             start_date,
             deadline,
             client_name,
+            estimated_budget,
             estimated_sp,
             viewer_ids = [],
         } = req.body;
 
-        if (!project_name || !client_name) {
-            return res.status(400).json({ message: 'project_name y client_name son obligatorios' });
+        const normalizedProjectName = typeof project_name === 'string' ? project_name.trim() : '';
+        const normalizedClientName = typeof client_name === 'string' ? client_name.trim() : '';
+        const parsedEstimatedSp = Number.parseInt(estimated_sp, 10);
+        const parsedEstimatedBudget = Number.parseFloat(estimated_budget);
+
+        const missingRequired = [];
+        if (!normalizedProjectName) missingRequired.push('project_name');
+        if (!normalizedClientName) missingRequired.push('client_name');
+        if (!start_date) missingRequired.push('start_date');
+        if (!deadline) missingRequired.push('deadline');
+        if (estimated_budget === undefined || estimated_budget === null || estimated_budget === '') {
+            missingRequired.push('estimated_budget');
+        }
+        if (estimated_sp === undefined || estimated_sp === null || estimated_sp === '') {
+            missingRequired.push('estimated_sp');
+        }
+
+        if (missingRequired.length > 0) {
+            return res.status(400).json({
+                message: `CA-05: faltan campos obligatorios: ${missingRequired.join(', ')}`
+            });
         }
         if (!id_pm) {
             return res.status(400).json({ message: 'CA-03: se requiere asignar un PM' });
         }
-        if (start_date && deadline && new Date(deadline) <= new Date(start_date)) {
+
+        const startDateObj = new Date(start_date);
+        const deadlineObj = new Date(deadline);
+
+        if (Number.isNaN(startDateObj.getTime()) || Number.isNaN(deadlineObj.getTime())) {
+            return res.status(400).json({ message: 'CA-02: start_date y deadline deben ser fechas validas' });
+        }
+        if (deadlineObj <= startDateObj) {
             return res.status(400).json({ message: 'El deadline debe ser posterior a la fecha de inicio' });
+        }
+        if (Number.isNaN(parsedEstimatedBudget) || parsedEstimatedBudget <= 0) {
+            return res.status(400).json({ message: 'CA-02: estimated_budget es obligatorio y debe ser mayor a 0' });
+        }
+        if (Number.isNaN(parsedEstimatedSp) || parsedEstimatedSp <= 0) {
+            return res.status(400).json({ message: 'CA-04: estimated_sp debe ser mayor a 0' });
         }
 
         // CA-02: el PM debe tener rol 'pm'
@@ -145,24 +174,9 @@ async function createProject(req, res) {
         if (pmRoleErr || !pmRole) {
             return res.status(400).json({ message: 'CA-02: el usuario asignado no tiene rol registrado' });
         }
-        if (pmRole.status !== 'pm') {
+        if (normalizeRole(pmRole.status) !== 'pm') {
             return res.status(400).json({
                 message: `CA-02: el usuario asignado tiene rol '${pmRole.status}', se requiere 'pm'`
-            });
-        }
-
-        // Un solo proyecto por PM
-        const { data: existingPmProject, error: existingErr } = await supabase
-            .from('project')
-            .select('id_project, project_name')
-            .eq('id_pm', id_pm);
-
-        if (existingErr) {
-            return res.status(500).json({ message: 'Error verificando PM', error: existingErr.message });
-        }
-        if (existingPmProject && existingPmProject.length > 0) {
-            return res.status(400).json({
-                message: `El PM ya está asignado al proyecto "${existingPmProject[0].project_name}". Un PM solo puede gestionar un proyecto a la vez.`
             });
         }
 
@@ -170,7 +184,7 @@ async function createProject(req, res) {
         const { data: nameDup } = await supabase
             .from('project')
             .select('id_project')
-            .eq('project_name', project_name)
+            .ilike('project_name', normalizedProjectName)
             .limit(1);
 
         if (nameDup && nameDup.length > 0) {
@@ -178,17 +192,25 @@ async function createProject(req, res) {
         }
 
         // CA-01 (HU-08): validar que viewer_ids tengan rol 'viewer'
-        if (Array.isArray(viewer_ids) && viewer_ids.length > 0) {
+        const normalizedViewerIds = Array.isArray(viewer_ids)
+            ? [...new Set(viewer_ids.map(v => Number.parseInt(v, 10)).filter(v => Number.isInteger(v) && v > 0))]
+            : [];
+
+        if (Array.isArray(viewer_ids) && viewer_ids.length > 0 && normalizedViewerIds.length !== viewer_ids.length) {
+            return res.status(400).json({ message: 'viewer_ids contiene valores invalidos' });
+        }
+
+        if (normalizedViewerIds.length > 0) {
             const { data: viewerRoles, error: vrErr } = await supabase
                 .from('role')
                 .select('id_user, status')
-                .in('id_user', viewer_ids);
+                .in('id_user', normalizedViewerIds);
 
             if (vrErr) return res.status(500).json({ message: 'Error verificando roles de viewers' });
 
-            const invalidViewers = viewer_ids.filter(vid => {
+            const invalidViewers = normalizedViewerIds.filter(vid => {
                 const r = viewerRoles.find(vr => vr.id_user === vid);
-                return !r || r.status !== 'viewer';
+                return !r || normalizeRole(r.status) !== 'viewer';
             });
 
             if (invalidViewers.length > 0) {
@@ -203,25 +225,45 @@ async function createProject(req, res) {
             .from('project')
             .insert([{
                 id_pm,
-                project_name,
+                project_name: normalizedProjectName,
                 description: description || null,
-                start_date: start_date || null,
-                deadline: deadline || null,
-                client_name,
-                estimated_sp: estimated_sp || null,
+                start_date,
+                deadline,
+                client_name: normalizedClientName,
+                estimated_sp: parsedEstimatedSp,
             }])
             .select()
             .single();
 
         if (insertErr) {
+            if (insertErr.code === '23505') {
+                return res.status(400).json({ message: 'Ya existe un proyecto con ese nombre' });
+            }
             return res.status(500).json({ message: 'Error creando proyecto', error: insertErr.message });
         }
 
+        // Persistir presupuesto estimado en tabla budget (segun esquema actual)
+        const { error: budgetErr } = await supabase
+            .from('budget')
+            .insert([{
+                id_project: created.id_project,
+                can_view_budget: true,
+                total_cost: parsedEstimatedBudget,
+                description: 'Estimated budget defined at project creation',
+            }]);
+
+        if (budgetErr) {
+            return res.status(500).json({
+                message: 'Proyecto creado, pero no se pudo guardar el presupuesto estimado',
+                error: budgetErr.message,
+            });
+        }
+
         // Asignar viewers en project_member
-        if (Array.isArray(viewer_ids) && viewer_ids.length > 0) {
+        if (normalizedViewerIds.length > 0) {
             const { error: memberErr } = await supabase
                 .from('project_member')
-                .insert(viewer_ids.map(id_user => ({ id_project: created.id_project, id_user })));
+                .insert(normalizedViewerIds.map(id_user => ({ id_project: created.id_project, id_user })));
             if (memberErr) console.warn('Warning asignando viewers:', memberErr.message);
         }
 
@@ -233,7 +275,14 @@ async function createProject(req, res) {
                 action: 'CREATE_PROJECT',
                 entity: 'project',
                 entity_id: String(created.id_project),
-                payload: { project_name: created.project_name, client_name: created.client_name, id_pm: created.id_pm, viewer_ids },
+                payload: {
+                    project_name: created.project_name,
+                    client_name: created.client_name,
+                    id_pm: created.id_pm,
+                    estimated_budget: parsedEstimatedBudget,
+                    estimated_sp: parsedEstimatedSp,
+                    viewer_ids: normalizedViewerIds,
+                },
             }]);
 
         if (auditErr) console.warn('Warning: audit log falló:', auditErr.message);
@@ -334,7 +383,7 @@ async function addViewerToProject(req, res) {
         if (vrErr || !viewerRole) {
             return res.status(400).json({ message: 'CA-01: el usuario no tiene rol registrado' });
         }
-        if (viewerRole.status !== 'viewer') {
+        if (normalizeRole(viewerRole.status) !== 'viewer') {
             return res.status(400).json({
                 message: `CA-01: el usuario tiene rol '${viewerRole.status}', se requiere 'viewer'`
             });
