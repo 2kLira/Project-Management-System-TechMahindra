@@ -1,5 +1,4 @@
 const supabase = require('../../config/supabase');
-const { VALID_ROLES } = require('../../config/constants');
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 
@@ -64,23 +63,15 @@ async function login(req, res) {
 }
 
 async function register(req, res) {
-  const { email, username, password, full_name, role } = req.body;
+  const { email, username, password, full_name } = req.body;
 
   try {
-    if (!email || !username || !password || !full_name || !role) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
-
-    if (!VALID_ROLES.includes(role)) {
-      return res.status(400).json({ message: 'Invalid role' });
-    }
-
     const hash = await argon2.hash(password);
 
     const { data, error } = await supabase
       .from('users')
       .insert({ email, username, full_name, password_hash: hash })
-      .select();
+      .select('id_user, email, username, full_name, status, created_at');
 
     if (error) {
       return res.status(400).json({ message: 'Error creating user', detail: error.message });
@@ -90,7 +81,7 @@ async function register(req, res) {
 
     const { error: roleError } = await supabase
       .from('role')
-      .insert({ id_user: user.id_user, status: role });
+      .insert({ id_user: user.id_user, status: 'viewer' });
 
     if (roleError) {
       return res.status(500).json({ message: 'Error assigning role', detail: roleError.message });
