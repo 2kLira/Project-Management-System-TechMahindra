@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import CreateProject from './CreateProject';
 import UserManagement from './users/UserManagement';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext'
 
 const API = 'http://localhost:8080';
 
-function Dashboard({ user, onLogout }) {
+function Dashboard({ user }) {
     const [projects, setProjects] = useState([]);
     const [view, setView] = useState('projects');
     const [loadError, setLoadError] = useState('');
@@ -14,12 +16,15 @@ function Dashboard({ user, onLogout }) {
     const [expandedProject, setExpandedProject] = useState(null);
     const [selectedViewer, setSelectedViewer] = useState({});
     const [loadingAdd, setLoadingAdd] = useState(null);
+    const { setUser } = useUser();    
+    const navigate = useNavigate();
 
     const isPM = user?.role === 'pm' || user?.role === 'admin';
 
     async function log_out() {
         await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include' });
-        if (onLogout) onLogout();
+        setUser(null)
+        navigate('/login')
     }
 
     const loadProjects = useCallback(async () => {
