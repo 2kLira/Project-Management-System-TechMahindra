@@ -17,7 +17,7 @@ export default function UserManagement({ currentUser }) {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const { res, data } = await api.get('/users');
+      const { data } = await api.get('/users');
       setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
       setUsers([]);
