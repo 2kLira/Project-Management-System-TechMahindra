@@ -340,22 +340,14 @@ function CreateProject({ onCancel }) {
 
     async function loadPMs() {
         try {
-<<<<<<< HEAD:project/my-app/src/features/projects/CreateProject.js
-            const { res, data } = await api.get('/projects/managers');
-            if (res.ok) setPms(data.pms || []);
-=======
             setPmLoadError('');
-            const res = await fetch('http://localhost:8080/projects/managers', {
-                credentials: 'include'
-            });
-            const data = await res.json();
+            const { res, data } = await api.get('/projects/managers');
             if (res.ok) {
                 setPms(data.pms || []);
             } else {
                 setPms([]);
                 setPmLoadError(data.message || data.error || `Error ${res.status} cargando PMs`);
             }
->>>>>>> b5045e8 (Add project deletion functionality and enhance role validation in project routes):project/my-app/src/dashboard/CreateProject.js
         } catch (err) {
             console.error('Error cargando PMs:', err);
             setPms([]);
@@ -647,13 +639,7 @@ function CreateProject({ onCancel }) {
                             <div style={styles.cardBody}>
                                 <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr 1fr' }}>
                                     <div style={styles.fieldGroup}>
-<<<<<<< HEAD:project/my-app/src/features/projects/CreateProject.js
                                         <label style={styles.label}>Presupuesto estimado (USD)</label>
-=======
-                                        <label style={styles.label}>
-                                            Estimated Budget (USD) <span style={styles.required}>*</span>
-                                        </label>
->>>>>>> b5045e8 (Add project deletion functionality and enhance role validation in project routes):project/my-app/src/dashboard/CreateProject.js
                                         <input
                                             style={styles.input(errors.budget)}
                                             name="budget"
@@ -675,13 +661,7 @@ function CreateProject({ onCancel }) {
                                         {errors.monthly_cost && <span style={styles.fieldError}>{errors.monthly_cost}</span>}
                                     </div>
                                     <div style={styles.fieldGroup}>
-<<<<<<< HEAD:project/my-app/src/features/projects/CreateProject.js
                                         <label style={styles.label}>Story Points planeados</label>
-=======
-                                        <label style={styles.label}>
-                                            Total Planned Story Points <span style={styles.required}>*</span>
-                                        </label>
->>>>>>> b5045e8 (Add project deletion functionality and enhance role validation in project routes):project/my-app/src/dashboard/CreateProject.js
                                         <input
                                             style={styles.input(errors.story_points)}
                                             name="story_points"
