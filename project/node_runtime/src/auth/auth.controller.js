@@ -5,6 +5,10 @@ const jwt = require('jsonwebtoken');
 const secretKey = process.env.JWT_SECRET;
 const VALID_ROLES = ['admin', 'pm', 'viewer'];
 
+function normalizeRole(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : 'viewer';
+}
+
 async function login(req, res) {
   try {
     const { email_user, password } = req.body;
@@ -35,7 +39,7 @@ async function login(req, res) {
       .eq('id_user', data.id_user)
       .single();
 
-    const role = roleData?.status || 'viewer';
+    const role = normalizeRole(roleData?.status);
 
     const token = jwt.sign(
       { id: data.id_user, role, username: data.username },
@@ -71,7 +75,9 @@ async function register(req, res) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    if (!VALID_ROLES.includes(role)) {
+    const normalizedRole = normalizeRole(role);
+
+    if (!VALID_ROLES.includes(normalizedRole)) {
       return res.status(400).json({ message: 'Invalid role' });
     }
 
@@ -90,7 +96,7 @@ async function register(req, res) {
 
     const { error: roleError } = await supabase
       .from('role')
-      .insert({ id_user: user.id_user, status: role });
+      .insert({ id_user: user.id_user, status: normalizedRole });
 
     if (roleError) {
       return res.status(500).json({ message: 'Error assigning role', detail: roleError.message });
