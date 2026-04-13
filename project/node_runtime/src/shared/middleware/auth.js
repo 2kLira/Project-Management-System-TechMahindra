@@ -30,36 +30,24 @@ async function authUser(req, res, next) {
                     status
                 )
             `)
-<<<<<<< HEAD:project/node_runtime/src/shared/middleware/auth.js
-            .eq('id_user', decoded.id)
-=======
             .eq('id_user', tokenUserId)
->>>>>>> b5045e8 (Add project deletion functionality and enhance role validation in project routes):project/node_runtime/src/middleware/auth.js
             .single();
 
         if (error || !user) {
             return res.status(401).json({ message: 'Invalid token. User not found.' });
         }
 
-<<<<<<< HEAD:project/node_runtime/src/shared/middleware/auth.js
-        const roleData = Array.isArray(user.role) ? user.role[0] : user.role;
-=======
         const roleRows = Array.isArray(user.role) ? user.role : (user.role ? [user.role] : []);
         const roles = roleRows
             .map((r) => normalizeRole(r?.status))
             .filter(Boolean);
->>>>>>> b5045e8 (Add project deletion functionality and enhance role validation in project routes):project/node_runtime/src/middleware/auth.js
 
         req.user = {
             id_user: user.id_user,
             username: user.username,
             email: user.email,
-<<<<<<< HEAD:project/node_runtime/src/shared/middleware/auth.js
-            role: roleData?.status || null
-=======
             role: roles[0] || null,
             roles,
->>>>>>> b5045e8 (Add project deletion functionality and enhance role validation in project routes):project/node_runtime/src/middleware/auth.js
         };
 
         next();
