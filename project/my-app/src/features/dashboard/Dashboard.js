@@ -1,85 +1,39 @@
-import { useState } from 'react';
-import Sidebar from '../../shared/components/Sidebar';
-import ProjectList from '../projects/ProjectList';
-import CreateProject from '../projects/CreateProject';
-import UserManagement from '../users/UserManagement';
-import api from '../../config/api';
+import { useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
+import { useAuth } from '../../shared/hooks/useAuth';
 
-function Dashboard({ user, onLogout }) {
-    const [view, setView] = useState('projects');
 
+function Dashboard() {
+    const { user, logout, loading } = useAuth();
+    const navigate = useNavigate();
+
+    console.log(user)
+    
+    useEffect(() =>{
+        if (!loading && !user) {
+        navigate('/auth/login');
+        }
+    }, [loading, user, navigate])
+    
+    if (loading) {
+        return <div>Cargando...</div>;
+    }
+
+    const view = "Dashboard"
     const isPM = user?.role === 'pm' || user?.role === 'admin';
 
     async function log_out() {
-        await api.post('/auth/logout');
-        if (onLogout) onLogout();
-    }
-
-    if (view === 'create') {
-        return (
-            <div style={wrap}>
-                <Sidebar active="projects" onNavigate={setView} />
-                <main style={mainStyle}>
-                    <CreateProject onCancel={() => setView('projects')} />
-                </main>
-            </div>
-        );
-    }
-
-    if (view === 'users') {
-        return (
-            <div style={wrap}>
-                <Sidebar active="users" onNavigate={setView} />
-                <main style={mainStyle}>
-                    <UserManagement currentUser={user} onBack={() => setView('projects')} />
-                </main>
-            </div>
-        );
-    }
-
-    if (view === 'projects') {
-        return (
-            <div style={wrap}>
-                <Sidebar active="projects" onNavigate={setView} />
-                <main style={mainStyle}>
-                    <div style={s.page}>
-                        <div style={s.topBar}>
-                            <div style={s.breadcrumb}>
-                                <span>Inicio</span>
-                                <span style={{ color: '#CCC' }}>/</span>
-                                <span style={{ color: '#1A1A1A', fontWeight: 500 }}>Proyectos</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: 12 }}>
-                                <button style={s.btnSecondary} onClick={log_out}>Cerrar sesión</button>
-                                {isPM && (
-                                    <>
-                                        <button style={s.btnPrimary} onClick={() => setView('create')}>
-                                            + Nuevo proyecto
-                                        </button>
-                                        <button style={s.btnSecondary} onClick={() => setView('users')}>
-                                            Gestión de usuarios
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                        <div style={s.body}>
-                            <ProjectList user={user} />
-                        </div>
-                    </div>
-                </main>
-            </div>
-        );
+        await logout;
+        navigate('/auth/login');
     }
 
     return (
         <div style={wrap}>
-            <Sidebar active={view} onNavigate={setView} />
             <main style={mainStyle}>
                 <div style={s.page}>
                     <div style={s.topBar}>
                         <div style={s.breadcrumb}>
-                            <span style={{ color: '#1A1A1A', fontWeight: 500, textTransform: 'capitalize' }}>{view}</span>
+                            <span style={{ color: '#1A1A1A', fontWeight: 500, textTransform: 'capitalize' }}>Dashboard</span>
                         </div>
                         <button style={s.btnSecondary} onClick={log_out}>Cerrar sesión</button>
                     </div>

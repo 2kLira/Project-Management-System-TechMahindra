@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../config/api';
+import sprint from '../sprints/sprints'
 
 function ProjectList({ user }) {
     const [projects, setProjects] = useState([]);
@@ -111,9 +112,14 @@ function ProjectList({ user }) {
                                     <div style={s.cardMeta}>{project.client_name}</div>
                                 </div>
                                 {isPM && isOwner && (
-                                    <button style={s.btnSecondary} onClick={() => toggleExpand(project.id_project)}>
-                                        {isExpanded ? 'Ocultar visores' : 'Gestionar visores'}
-                                    </button>
+                                    <div>
+                                        <button onClick={() => <sprint />}>
+                                            Ver sprints
+                                        </button>
+                                        <button style={s.btnSecondary} onClick={() => toggleExpand(project.id_project)}>
+                                            {isExpanded ? 'Ocultar visores' : 'Gestionar visores'}
+                                        </button>
+                                    </div>
                                 )}
                             </div>
 

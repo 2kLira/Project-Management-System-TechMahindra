@@ -2,6 +2,17 @@
    Sidebar reusable styles
    =========================== */
 
+.sb-layout {
+    display: flex;
+    height: 100vh;
+}
+
+.sb-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
 .sb-sidebar {
     width: 220px;
     min-width: 220px;

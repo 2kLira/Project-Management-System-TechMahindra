@@ -1,20 +1,11 @@
 import { useAuth } from './shared/hooks/useAuth';
-import Login from './features/auth/Login';
-import Dashboard from './features/dashboard/Dashboard';
+import { Outlet } from "react-router-dom";
 import './App.css';
 
-function App() {
-    const { user, loading, login, logout } = useAuth();
+function AuthLayout() {
+    const {loading } = useAuth();
 
     if (loading) return null;
-
-    if (user) {
-        return (
-            <div className="app-layout-app">
-                <Dashboard user={user} onLogout={logout} />
-            </div>
-        );
-    }
 
     return (
         <div className="app-layout-auth">
@@ -51,10 +42,10 @@ function App() {
                 </ul>
             </aside>
             <main className='app-content'>
-                <Login onLogin={login} />
+                <Outlet />
             </main>
         </div>
     );
 }
 
-export default App;
+export default AuthLayout;

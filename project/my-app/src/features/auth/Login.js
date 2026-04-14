@@ -1,13 +1,21 @@
 import { useState } from 'react';
 import './Login.css';
+import api from '../../config/api';
+import { useNavigate } from "react-router-dom";
 
-function Login({ onLogin }) {
+
+function Login() {
     const [form, setForm] = useState({ email_user: '', password: '' });
     const [mensaje, setMensaje] = useState('');
+    const navigate = useNavigate()
 
     async function login_proccess() {
-        const result = await onLogin(form);
-        if (!result.ok) {
+        console.log(form)
+        const result = await api.post('/auth/login', form);
+        console.log(result)
+        if (result.res.status === 200){
+            navigate('/menu/dashboard')
+        } else {
             setMensaje('Credenciales incorrectas. Intenta de nuevo.');
         }
     }
