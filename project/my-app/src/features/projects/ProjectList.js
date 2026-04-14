@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../config/api';
+import WorkItems from '../work_items/WorkItems';
 
 function ProjectList({ user }) {
     const [projects, setProjects] = useState([]);
@@ -9,6 +10,7 @@ function ProjectList({ user }) {
     const [expandedProject, setExpandedProject] = useState(null);
     const [selectedViewer, setSelectedViewer] = useState({});
     const [loadingAdd, setLoadingAdd] = useState(null);
+    const [managingItemsFor, setManagingItemsFor] = useState(null);
 
     const isPM = user?.role === 'pm' || user?.role === 'admin';
 
@@ -81,6 +83,17 @@ function ProjectList({ user }) {
 
     const safeProjects = Array.isArray(projects) ? projects : [];
 
+    if (managingItemsFor) {
+        return (
+            <WorkItems
+                projectId={managingItemsFor.id_project}
+                projectName={managingItemsFor.project_name}
+                currentUser={user}
+                onBack={() => setManagingItemsFor(null)}
+            />
+        );
+    }
+
     return (
         <div>
             <h1 style={s.title}>Proyectos</h1>
@@ -111,9 +124,14 @@ function ProjectList({ user }) {
                                     <div style={s.cardMeta}>{project.client_name}</div>
                                 </div>
                                 {isPM && isOwner && (
-                                    <button style={s.btnSecondary} onClick={() => toggleExpand(project.id_project)}>
-                                        {isExpanded ? 'Ocultar visores' : 'Gestionar visores'}
-                                    </button>
+                                    <div style={s.headerActions}>
+                                        <button style={s.btnSecondary} onClick={() => toggleExpand(project.id_project)}>
+                                            {isExpanded ? 'Ocultar visores' : 'Gestionar visores'}
+                                        </button>
+                                        <button style={s.btnSecondary} onClick={() => setManagingItemsFor(project)}>
+                                            Gestionar items
+                                        </button>
+                                    </div>
                                 )}
                             </div>
 
@@ -178,6 +196,7 @@ const s = {
     cardTitle: { fontSize: 14, fontWeight: 600 },
     cardMeta: { fontSize: 12, color: '#888' },
     cardBody: { padding: '16px 20px' },
+    headerActions: { display: 'flex', gap: 8 },
     sectionLabel: { fontSize: 11, fontWeight: 600, color: '#555', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 },
     viewerRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #F5F5F4', fontSize: 13 },
     addRow: { display: 'flex', gap: 8, marginTop: 12 },
