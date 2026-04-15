@@ -3,12 +3,12 @@ import { useAuthContext } from '../context/AuthContext';
 import './Sidebar.css';
 
 const ICONS = {
-    dashboard: '▦',
-    projects:  '◫',
-    users:     '◎',
+    dashboard: '▣',
+    projects:  '▭',
+    users:     '◉',
     audit:     '≡',
-    leader:    '◈',
-    personal:  '⌂',
+    leader:    '◇',
+    personal:  '◦',
 };
 
 const NAV_ITEMS = [
@@ -95,19 +95,19 @@ export default function Sidebar({ onLogout }) {
                                 Dashboard
                             </div>
                             <div className={projectMenuClass(false)}>
-                                <span className="sb-icon">☰</span>
+                                <span className="sb-icon">▤</span>
                                 Backlog
                             </div>
                             <div className={projectMenuClass(false)}>
-                                <span className="sb-icon">⚡</span>
+                                <span className="sb-icon">◫</span>
                                 Sprints
                             </div>
                             <div className={projectMenuClass(false)}>
-                                <span className="sb-icon">◧</span>
+                                <span className="sb-icon">▥</span>
                                 Sprint Board
                             </div>
                             <div className={projectMenuClass(false)}>
-                                <span className="sb-icon">◌</span>
+                                <span className="sb-icon">◍</span>
                                 Submit Cost
                             </div>
                         </div>
