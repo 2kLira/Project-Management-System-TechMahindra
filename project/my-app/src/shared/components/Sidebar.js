@@ -1,28 +1,35 @@
-import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { useAuthContext } from '../context/AuthContext';
 import './Sidebar.css';
 
 const ICONS = {
     dashboard: '▦',
-    projects: '◫',
-    users: '◎',
-    audit: '≡',
-    leader: '◈',
+    projects:  '◫',
+    users:     '◎',
+    audit:     '≡',
+    leader:    '◈',
 };
 
-function Sidebar(props) {
-    const active = props.active || 'dashboard';
-    const onNavigate = props.onNavigate || function () {};
+const NAV_ITEMS = [
+    { to: '/home',        label: 'Inicio',        icon: 'dashboard', section: 'general'                         },
+    { to: '/projects',    label: 'Proyectos',     icon: 'projects',  section: 'general'                         },
+    { to: '/users',       label: 'Usuarios',      icon: 'users',     section: 'general',  roles: ['pm','admin'] },
+    { to: '/audit',       label: 'Bitácora',      icon: 'audit',     section: 'inteligencia'                    },
+    { to: '/leaderboard', label: 'Clasificación', icon: 'leader',    section: 'inteligencia'                    },
+];
 
-    const items = [
-        { key: 'dashboard', label: 'Inicio',          icon: 'dashboard', section: 'general' },
-        { key: 'projects',  label: 'Proyectos',       icon: 'projects',  section: 'general' },
-        { key: 'users',     label: 'Usuarios',        icon: 'users',     section: 'general' },
-        { key: 'audit',     label: 'Bitácora',        icon: 'audit',     section: 'inteligencia' },
-        { key: 'leader',    label: 'Clasificación',   icon: 'leader',    section: 'inteligencia' },
-    ];
+export default function Sidebar({ onLogout }) {
+    const { user } = useAuthContext();
 
-    const overview = items.filter(i => i.section === 'general');
-    const intelligence = items.filter(i => i.section === 'inteligencia');
+    const visible = NAV_ITEMS.filter(item =>
+        !item.roles || (user && item.roles.includes(user.role))
+    );
+
+    const general      = visible.filter(i => i.section === 'general');
+    const intelligence = visible.filter(i => i.section === 'inteligencia');
+
+    const navClass = ({ isActive }) =>
+        'sb-nav-item' + (isActive ? ' sb-nav-item-active' : '');
 
     return (
         <aside className="sb-sidebar">
@@ -38,31 +45,35 @@ function Sidebar(props) {
 
             <div className="sb-section">
                 <div className="sb-section-label">General</div>
-                {overview.map(i => (
-                    <div
-                        key={i.key}
-                        className={'sb-nav-item ' + (active === i.key ? 'sb-nav-item-active' : '')}
-                        onClick={() => onNavigate(i.key)}
-                    >
-                        <span className="sb-icon">{ICONS[i.icon]}</span> {i.label}
-                    </div>
+                {general.map(item => (
+                    <NavLink key={item.to} to={item.to} className={navClass}>
+                        <span className="sb-icon">{ICONS[item.icon]}</span>
+                        {item.label}
+                    </NavLink>
                 ))}
             </div>
 
             <div className="sb-section">
                 <div className="sb-section-label">Inteligencia</div>
-                {intelligence.map(i => (
-                    <div
-                        key={i.key}
-                        className={'sb-nav-item ' + (active === i.key ? 'sb-nav-item-active' : '')}
-                        onClick={() => onNavigate(i.key)}
-                    >
-                        <span className="sb-icon">{ICONS[i.icon]}</span> {i.label}
-                    </div>
+                {intelligence.map(item => (
+                    <NavLink key={item.to} to={item.to} className={navClass}>
+                        <span className="sb-icon">{ICONS[item.icon]}</span>
+                        {item.label}
+                    </NavLink>
                 ))}
+            </div>
+
+            <div className="sb-logout-wrap">
+                <div className="sb-user-info">
+                    <span className="sb-user-name">{user?.username}</span>
+                    <span className="sb-user-role">{user?.role}</span>
+                </div>
+                {onLogout && (
+                    <button className="sb-logout-btn" onClick={onLogout}>
+                        Cerrar sesión
+                    </button>
+                )}
             </div>
         </aside>
     );
 }
-
-export default Sidebar;
