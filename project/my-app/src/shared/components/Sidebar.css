@@ -1,23 +1,24 @@
 /* 
    Sidebar reusable styles
-    */
+*/
 
 .sb-sidebar {
     width: 220px;
     min-width: 220px;
-    background-color: #1A1A1A;
-    padding: 24px 0;
+    background-color: #29251D;
+    padding: 24px 0 100px;
     flex-shrink: 0;
     height: 100vh;
     overflow-y: auto;
     position: sticky;
     top: 0;
+    align-self: flex-start;
     font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
 }
 
 .sb-logo-wrap {
     padding: 0 20px 24px;
-    border-bottom: 1px solid #2E2E2E;
+    border-bottom: 1px solid #3D3830;
     margin-bottom: 16px;
 }
 
@@ -41,14 +42,14 @@
 }
 
 .sb-logo-text {
-    color: #FFFFFF;
+    color: #F6F2EA;
     font-size: 13px;
     font-weight: 600;
     line-height: 1.3;
 }
 
 .sb-logo-sub {
-    color: #666;
+    color: #F6F2EA99;
     font-size: 11px;
     font-weight: 400;
 }
@@ -61,7 +62,7 @@
     padding: 4px 20px;
     font-size: 10px;
     font-weight: 600;
-    color: #555;
+    color: #fcfcfcc0;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     margin-bottom: 4px;
@@ -73,7 +74,7 @@
     gap: 10px;
     padding: 9px 20px;
     font-size: 13px;
-    color: #888;
+    color: #ffffff;   
     background-color: transparent;
     cursor: pointer;
     border-left: 3px solid transparent;
@@ -82,8 +83,8 @@
 }
 
 .sb-nav-item:hover {
-    color: #FFFFFF;
-    background-color: #242424;
+    color: #F6F2EA;
+    background-color: #cfccc4;
 }
 
 .sb-nav-item-active {
@@ -96,21 +97,20 @@
     font-size: 12px;
     opacity: 0.8;
 }
-/* ---- NavLink renders <a>, remove browser defaults ---- */
+
 a.sb-nav-item {
     text-decoration: none;
     color: inherit;
 }
 
-/* ---- Bottom user/logout section ---- */
 .sb-logout-wrap {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     padding: 14px 20px;
-    border-top: 1px solid #2E2E2E;
-    background-color: #1A1A1A;
+    border-top: 1px solid #3D3830;
+    background-color: #29251D;
 }
 
 .sb-user-info {
@@ -122,13 +122,13 @@ a.sb-nav-item {
 
 .sb-user-name {
     font-size: 12px;
-    color: #CCC;
+    color: #F6F2EA;
     font-weight: 500;
 }
 
 .sb-user-role {
     font-size: 10px;
-    color: #555;
+    color: #F6F2EA99;
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
@@ -136,9 +136,9 @@ a.sb-nav-item {
 .sb-logout-btn {
     width: 100%;
     height: 32px;
-    background-color: transparent;
-    color: #666;
-    border: 1px solid #2E2E2E;
+    background-color: #CC0000;
+    color: #FFFFFF;
+    border: 1px solid #AA0000;
     border-radius: 4px;
     font-size: 12px;
     cursor: pointer;
@@ -147,10 +147,7 @@ a.sb-nav-item {
 }
 
 .sb-logout-btn:hover {
-    color: #FFF;
-    border-color: #555;
-    background-color: #242424;
+    background-color: #E60000;
+    border-color: #CC0000;
+    color: #FFFFFF;
 }
-
-/* Allow space for absolute footer */
-.sb-sidebar { position: relative; padding-bottom: 100px; }
