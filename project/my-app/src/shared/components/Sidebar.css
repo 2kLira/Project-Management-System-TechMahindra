@@ -86,6 +86,16 @@
     background-color: #242424;
 }
 
+.sb-nav-item-project {
+    color: #7D7D7D;
+    cursor: default;
+}
+
+.sb-nav-item-project:hover {
+    color: #EAEAEA;
+    background-color: #202020;
+}
+
 .sb-nav-item-active {
     color: #FFFFFF !important;
     background-color: #CC0000 !important;
