@@ -1,27 +1,28 @@
 /* 
    Sidebar reusable styles
-    */
+*/
 
 .sb-sidebar {
-    width: clamp(186px, 15vw, 220px);
-    min-width: 186px;
-    background: linear-gradient(180deg, #23201b 0%, #1f1d19 100%);
-    padding: clamp(14px, 2vh, 24px) 0;
+    width: 220px;
+    min-width: 220px;
+    background-color: #29251D;
+    padding: 24px 0 100px;
     flex-shrink: 0;
     height: 100dvh;
     max-height: 100dvh;
     overflow-y: auto;
     position: sticky;
     top: 0;
+    align-self: flex-start;
     font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
     display: flex;
     flex-direction: column;
 }
 
 .sb-logo-wrap {
-    padding: 0 16px 16px;
-    border-bottom: 1px solid #38342c;
-    margin-bottom: 10px;
+    padding: 0 20px 24px;
+    border-bottom: 1px solid #3D3830;
+    margin-bottom: 16px;
 }
 
 .sb-logo-box {
@@ -44,7 +45,7 @@
 }
 
 .sb-logo-text {
-    color: #FFFFFF;
+    color: #F6F2EA;
     font-size: 13px;
     font-weight: 600;
     line-height: 1.3;
@@ -109,13 +110,12 @@
     font-size: 12px;
     opacity: 0.9;
 }
-/* ---- NavLink renders <a>, remove browser defaults ---- */
+
 a.sb-nav-item {
     text-decoration: none;
     color: inherit;
 }
 
-/* ---- Bottom user/logout section ---- */
 .sb-logout-wrap {
     margin-top: auto;
     padding: 12px 16px;
