@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../shared/context/AuthContext';
 import ProjectList from './ProjectList';
+import ViewerProjectsTable from './ViewerProjectsTable';
 
 export default function ProjectsPage() {
     const { user } = useAuthContext();
     const navigate  = useNavigate();
     const isPM = user?.role === 'pm' || user?.role === 'admin';
+    const isViewer = user?.role === 'viewer';
 
     return (
         <div style={s.page}>
@@ -26,8 +28,8 @@ export default function ProjectsPage() {
                     </div>
                 )}
             </div>
-            <div style={s.body}>
-                <ProjectList user={user} />
+            <div style={isViewer ? s.bodyViewer : s.body}>
+                {user?.role === 'viewer' ? <ViewerProjectsTable /> : <ProjectList user={user} />}
             </div>
         </div>
     );
@@ -38,6 +40,7 @@ const s = {
     topBar:      { backgroundColor:'#FFF', borderBottom:'1px solid #E5E5E3', padding:'0 32px', height:56, display:'flex', alignItems:'center', justifyContent:'space-between' },
     breadcrumb:  { display:'flex', alignItems:'center', gap:8, fontSize:13, color:'#888' },
     body:        { padding:32, maxWidth:1200 },
+    bodyViewer:  { padding: '32px 32px 24px', width: '100%', maxWidth: 'none' },
     btnPrimary:  { height:36, padding:'0 16px', backgroundColor:'#CC0000', color:'#FFF', border:'none', borderRadius:4, fontSize:13, fontWeight:600, cursor:'pointer' },
     btnSecondary:{ height:36, padding:'0 16px', backgroundColor:'transparent', color:'#555', border:'1px solid #D0D0CE', borderRadius:4, fontSize:13, cursor:'pointer' },
 };

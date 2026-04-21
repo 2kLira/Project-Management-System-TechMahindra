@@ -1,0 +1,165 @@
+.vpb-page {
+    min-height: 100vh;
+    background-color: #ECE9E2;
+    font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
+    color: #1A1A1A;
+}
+
+.vpb-top-bar {
+    height: 44px;
+    padding: 0 18px;
+    background-color: #FFF;
+    border-bottom: 1px solid #E4DFD4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.vpb-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #8D8D8D;
+}
+
+.vpb-crumb-accent {
+    color: #D83B4D;
+    font-weight: 500;
+}
+
+.vpb-back-btn {
+    height: 26px;
+    border: 1px solid #DEDAD0;
+    border-radius: 5px;
+    background-color: #FFF;
+    font-size: 11px;
+    color: #4A4A4A;
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+.vpb-content-wrap {
+    padding: 14px 18px 24px;
+    width: 100%;
+}
+
+.vpb-title {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 6px 0 14px;
+}
+
+.vpb-table-card {
+    background-color: #FFF;
+    border-radius: 6px;
+    border: 1px solid #E5DFD3;
+    overflow: hidden;
+    width: 100%;
+}
+
+.vpb-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.vpb-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+}
+
+.vpb-th,
+.vpb-th-item {
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: #8B8B8B;
+    border-bottom: 1px solid #ECE6DA;
+    background-color: #F8F6F0;
+    white-space: nowrap;
+}
+
+.vpb-th-item {
+    width: 34%;
+}
+
+.vpb-td,
+.vpb-td-strong,
+.vpb-td-item {
+    padding: 9px 10px;
+    font-size: 12px;
+    border-bottom: 1px solid #EFEAE0;
+}
+
+.vpb-td,
+.vpb-td-strong {
+    white-space: nowrap;
+}
+
+.vpb-td-strong {
+    font-weight: 600;
+}
+
+.vpb-highlight-row {
+    background-color: #FFF5F7;
+}
+
+.vpb-item-important {
+    color: #D92F47;
+    font-weight: 600;
+}
+
+.vpb-blocked-text {
+    margin-top: 2px;
+    font-size: 11px;
+    color: #E08200;
+}
+
+.vpb-pill {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.vpb-target-overdue {
+    color: #DA3045;
+}
+
+.vpb-target-warn {
+    color: #D67C00;
+}
+
+.vpb-assignee-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vpb-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #E07A00;
+    color: #FFF;
+    font-size: 9px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.vpb-view-btn {
+    height: 26px;
+    border: 1px solid #DEDAD0;
+    border-radius: 5px;
+    background-color: #FFF;
+    font-size: 11px;
+    color: #4A4A4A;
+    padding: 0 11px;
+    cursor: pointer;
+}

@@ -7,6 +7,8 @@ import AppLayout from '../shared/components/AppLayout';
 import LoginPage      from '../features/auth/LoginPage';
 import HomePage       from '../features/dashboard/HomePage';
 import ProjectsPage   from '../features/projects/ProjectsPage';
+import ViewerProjectWorkspacePage from '../features/projects/ViewerProjectWorkspacePage';
+import ViewerProjectBacklogPage from '../features/projects/ViewerProjectBacklogPage';
 import CreateProjectPage from '../features/projects/CreateProjectPage';
 import UsersPage      from '../features/users/UsersPage';
 import AuditPage      from '../features/audit/AuditPage';
@@ -38,6 +40,22 @@ export default function AppRouter() {
                         <Route index element={<Navigate to="/projects" replace />} />
                         <Route path="/home"     element={<HomePage />} />
                         <Route path="/projects" element={<ProjectsPage />} />
+                        <Route
+                            path="/projects/:id/view"
+                            element={
+                                <ProtectedRoute roles={['viewer']}>
+                                    <ViewerProjectWorkspacePage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/projects/:id/backlog"
+                            element={
+                                <ProtectedRoute roles={['viewer']}>
+                                    <ViewerProjectBacklogPage />
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route
                             path="/projects/new"
                             element={
