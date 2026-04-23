@@ -3,8 +3,8 @@ import { NavLink } from 'react-router-dom';
 const PROJECT_MENU_ITEMS = [
     { key: 'dashboard', label: 'Dashboard', icon: '▣', kind: 'link', suffix: 'view' },
     { key: 'backlog', label: 'Backlog', icon: '▤', kind: 'link', suffix: 'backlog' },
-    { key: 'sprints', label: 'Sprints', icon: '◫', kind: 'static' },
-    { key: 'board', label: 'Sprint Board', icon: '▥', kind: 'static' },
+    { key: 'sprints', label: 'Sprints', icon: '◫', kind: 'link', suffix: 'sprints' },
+    { key: 'board', label: 'Sprint Board', icon: '▥', kind: 'static'},
     { key: 'cost', label: 'Submit Cost', icon: '◍', kind: 'static' },
 ];
 

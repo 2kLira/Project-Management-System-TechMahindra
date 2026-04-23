@@ -9,6 +9,7 @@ import HomePage       from '../features/dashboard/HomePage';
 import ProjectsPage   from '../features/projects/ProjectsPage';
 import ViewerProjectWorkspacePage from '../features/projects/ViewerProjectWorkspacePage';
 import ViewerProjectBacklogPage from '../features/projects/ViewerProjectBacklogPage';
+import SprintsPage from '../features/sprints/SprintsPage'
 import CreateProjectPage from '../features/projects/CreateProjectPage';
 import UsersPage      from '../features/users/UsersPage';
 import AuditPage      from '../features/audit/AuditPage';
@@ -53,6 +54,14 @@ export default function AppRouter() {
                             element={
                                 <ProtectedRoute roles={['viewer']}>
                                     <ViewerProjectBacklogPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path='/projects/:id/sprints' 
+                            element={
+                                <ProtectedRoute roles={['viewer', 'pm']}>
+                                    <SprintsPage />
                                 </ProtectedRoute>
                             }
                         />
