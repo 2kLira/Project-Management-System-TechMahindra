@@ -1,73 +1,11 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import './ViewerProjectBacklogPage.css';
-
-// Visual-only rows while real backlog assignment flow is still pending.
-const backlogRows = [
-    {
-        id: 1,
-        title: 'Implement OAuth 2.0 login flow',
-        type: 'User Story',
-        sp: 8,
-        target: 'Mar 8 - Overdue',
-        status: 'In Progress',
-        assignee: 'Laura Castillo',
-        highlight: true,
-        blocked: 'Active blocker: 5 days',
-    },
-    {
-        id: 2,
-        title: 'Build token refresh mechanism',
-        type: 'Task',
-        sp: 3,
-        target: 'Mar 12 - 2 days',
-        status: 'In Progress',
-        assignee: 'Ravi Kumar',
-    },
-    {
-        id: 3,
-        title: 'Write unit tests for auth module',
-        type: 'Task',
-        sp: 2,
-        target: 'Mar 14 - 4 days',
-        status: 'To Do',
-        assignee: 'Anita Desai',
-    },
-    {
-        id: 4,
-        title: 'Fix login page redirect on timeout',
-        type: 'Bug',
-        sp: 1,
-        target: 'Mar 15 - 5 days',
-        status: 'To Do',
-        assignee: 'Priya Singh',
-    },
-    {
-        id: 5,
-        title: 'Set-up development environment',
-        type: 'Task',
-        sp: 2,
-        target: 'Mar 3 - On time',
-        status: 'Done',
-        assignee: 'Carlos Mendoza',
-    },
-];
-
-function initialsFromName(name) {
-    const parts = String(name || '').split(' ').filter(Boolean);
-    return (parts[0]?.[0] || '') + (parts[1]?.[0] || '');
-}
-
-function getTypeBadgeColors(type) {
-    if (type === 'Bug') return { color: '#B94A48', bg: '#FCE9E9' };
-    if (type === 'User Story') return { color: '#3162D1', bg: '#E7EEFF' };
-    return { color: '#3C9A57', bg: '#E9F7ED' };
-}
-
-function getStatusBadgeColors(status) {
-    if (status === 'Done') return { color: '#3C9A57', bg: '#E9F7ED' };
-    if (status === 'In Progress') return { color: '#3162D1', bg: '#E7EEFF' };
-    return { color: '#7E8693', bg: '#EEF1F5' };
-}
+import {
+    getBacklogItemsForProject,
+    getStatusBadgeColors,
+    getTypeBadgeColors,
+    initialsFromName,
+} from './viewerBacklogMock';
 
 export default function ViewerProjectBacklogPage() {
     const { id } = useParams();
@@ -76,6 +14,7 @@ export default function ViewerProjectBacklogPage() {
 
     // If route state is missing (e.g. page refresh), fallback to a safe title.
     const projectName = location.state?.projectName || `Project ${id}`;
+    const backlogRows = getBacklogItemsForProject(id);
 
     return (
         <div className="vpb-page">
@@ -116,16 +55,16 @@ export default function ViewerProjectBacklogPage() {
 
                                     // Highlight urgent row to mirror the design reference.
                                     return (
-                                        <tr key={item.id} className={item.highlight ? 'vpb-highlight-row' : undefined}>
+                                        <tr key={item.id} className={item.blockerCount > 0 ? 'vpb-highlight-row' : undefined}>
                                             <td className="vpb-td-item">
-                                                <div className={item.highlight ? 'vpb-item-important' : undefined}>{item.title}</div>
-                                                {item.blocked && <div className="vpb-blocked-text">⚠ {item.blocked}</div>}
+                                                <div className={item.blockerCount > 0 ? 'vpb-item-important' : undefined}>{item.title}</div>
+                                                {item.blockedSummary && <div className="vpb-blocked-text">⚠ {item.blockedSummary}</div>}
                                             </td>
                                             <td className="vpb-td">
                                                 <span className="vpb-pill" style={{ color: type.color, backgroundColor: type.bg }}>{item.type}</span>
                                             </td>
-                                            <td className="vpb-td-strong">{item.sp}</td>
-                                            <td className={item.target.includes('Overdue') ? 'vpb-td vpb-target-overdue' : 'vpb-td vpb-target-warn'}>{item.target}</td>
+                                            <td className="vpb-td-strong">{item.storyPoints}</td>
+                                            <td className={String(item.targetDate || '').includes('Overdue') ? 'vpb-td vpb-target-overdue' : 'vpb-td vpb-target-warn'}>{item.targetDate}</td>
                                             <td className="vpb-td">
                                                 <span className="vpb-pill" style={{ color: status.color, backgroundColor: status.bg }}>{item.status}</span>
                                             </td>
@@ -136,7 +75,12 @@ export default function ViewerProjectBacklogPage() {
                                                 </div>
                                             </td>
                                             <td className="vpb-td">
-                                                <button className="vpb-view-btn">View</button>
+                                                <button
+                                                    className="vpb-view-btn"
+                                                    onClick={() => navigate(`/projects/${id}/backlog/${item.id}`, { state: { projectName } })}
+                                                >
+                                                    View
+                                                </button>
                                             </td>
                                         </tr>
                                     );

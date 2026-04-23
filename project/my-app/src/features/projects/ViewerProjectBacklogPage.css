@@ -163,3 +163,8 @@
     padding: 0 11px;
     cursor: pointer;
 }
+
+.vpb-view-btn:hover {
+    border-color: #D92F47;
+    color: #D92F47;
+}
