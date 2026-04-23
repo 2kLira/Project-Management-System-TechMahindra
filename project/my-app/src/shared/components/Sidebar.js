@@ -9,7 +9,7 @@ export default function Sidebar({ onLogout }) {
     const location = useLocation();
     const params = useParams();
     const isViewer = user?.role === 'viewer';
-    const isViewerProjectWorkspace = isViewer && /^\/projects\/\d+\/(view|backlog)$/.test(location.pathname);
+    const isViewerProjectWorkspace = isViewer && /^\/projects\/\d+\/(view|backlog|sprints)$/.test(location.pathname);
     const projectId = params?.id;
     const projectNameFromState = location.state?.projectName;
     const projectSectionTitle = (projectNameFromState || `Proyecto ${projectId || ''}`).toUpperCase();
