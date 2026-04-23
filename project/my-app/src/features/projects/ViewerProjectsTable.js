@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../config/api';
+import './ViewerProjectsTable.css';
 
 const MOCK_PROGRESS = [42, 55, 68, 37, 74, 61];
 const MOCK_EXPECTED = [68, 62, 70, 50, 77, 64];
@@ -70,91 +71,98 @@ export default function ViewerProjectsTable() {
     }, [projects, query]);
 
     if (loading) {
-        return <div style={s.empty}>Cargando proyectos...</div>;
+        return <div className="vpt-empty">Cargando proyectos...</div>;
     }
 
     if (error) {
-        return <div style={s.error}>{error}</div>;
+        return <div className="vpt-error">{error}</div>;
     }
 
     return (
-        <div style={s.cardWrap}>
-            <div style={s.headerRow}>
+        <div className="vpt-card-wrap">
+            <div className="vpt-header-row">
                 <div>
-                    <div style={s.blockTitle}>Todos los proyectos - Vista consolidada</div>
+                    <div className="vpt-block-title">Todos los proyectos - Vista consolidada</div>
                 </div>
-                <div style={s.actions}>
+                <div className="vpt-actions">
                     <input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Buscar proyectos..."
-                        style={s.search}
+                        className="vpt-search"
                     />
-                    <button style={s.btnGhost}>Filtrar</button>
-                    <button style={s.btnGhost}>Exportar</button>
+                    <button className="vpt-btn-ghost">Filtrar</button>
+                    <button className="vpt-btn-ghost">Exportar</button>
                 </div>
             </div>
 
             {filtered.length === 0 ? (
-                <div style={s.empty}>
+                <div className="vpt-empty">
                     {projects.length === 0
                         ? 'No tienes proyectos asignados por el momento.'
                         : 'No hay resultados para la busqueda.'}
                 </div>
             ) : (
-                <div style={s.tableContainer}>
-                    <table style={s.table}>
+                <div className="vpt-table-container">
+                    <table className="vpt-table">
                         <thead>
                             <tr>
-                                <th style={s.th}>PROYECTO</th>
-                                <th style={s.th}>CLIENTE</th>
-                                <th style={s.th}>PM</th>
-                                <th style={s.th}>ESTADO</th>
-                                <th style={s.th}>AVANCE REAL</th>
-                                <th style={s.th}>ESPERADO</th>
-                                <th style={s.th}>DESVIACION</th>
-                                <th style={s.th}>COSTO APROBADO</th>
-                                <th style={s.th}>RIESGOS ACTIVOS</th>
-                                <th style={s.th}>SEMAFORO</th>
-                                <th style={s.th}>ACCIONES</th>
+                                <th className="vpt-th">PROYECTO</th>
+                                <th className="vpt-th">CLIENTE</th>
+                                <th className="vpt-th">PM</th>
+                                <th className="vpt-th">ESTADO</th>
+                                <th className="vpt-th">AVANCE REAL</th>
+                                <th className="vpt-th">ESPERADO</th>
+                                <th className="vpt-th">DESVIACION</th>
+                                <th className="vpt-th">COSTO APROBADO</th>
+                                <th className="vpt-th">RIESGOS ACTIVOS</th>
+                                <th className="vpt-th">SEMAFORO</th>
+                                <th className="vpt-th">ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtered.map((project, index) => {
                                 const visual = getVisualMetrics(index);
-                                const deviationColor = visual.deviation < 0 ? '#C62828' : '#2E7D32';
-                                const barColor = visual.deviation < -10 ? '#C62828' : '#E07A00';
+                                const deviationClass = visual.deviation < 0 ? 'vpt-deviation-negative' : 'vpt-deviation-positive';
+                                const progressColor = visual.deviation < -10 ? '#C62828' : '#E07A00';
+                                const risksClass = visual.activeRisks > 0 ? 'vpt-risks-active' : 'vpt-risks-none';
 
                                 return (
                                     <tr key={project.id_project}>
-                                        <td style={{ ...s.td, ...s.projectCell }}>{project.project_name}</td>
-                                        <td style={s.td}>{project.client_name || 'N/A'}</td>
-                                        <td style={s.td}>PM #{project.id_pm}</td>
-                                        <td style={s.td}><span style={s.activePill}>Activo</span></td>
-                                        <td style={s.td}>
-                                            <div style={s.progressWrap}>
-                                                <div style={s.progressTrack}>
-                                                    <div style={{ ...s.progressFill, width: `${visual.progress}%`, backgroundColor: barColor }} />
+                                        <td className="vpt-td vpt-project-cell">{project.project_name}</td>
+                                        <td className="vpt-td">{project.client_name || 'N/A'}</td>
+                                        <td className="vpt-td">PM #{project.id_pm}</td>
+                                        <td className="vpt-td"><span className="vpt-active-pill">Activo</span></td>
+                                        <td className="vpt-td">
+                                            <div className="vpt-progress-wrap">
+                                                <div className="vpt-progress-track">
+                                                    <div
+                                                        className="vpt-progress-fill"
+                                                        style={{ width: `${visual.progress}%`, '--vpt-progress-color': progressColor }}
+                                                    />
                                                 </div>
                                                 <span>{visual.progress}%</span>
                                             </div>
                                         </td>
-                                        <td style={s.td}>{visual.expected}%</td>
-                                        <td style={{ ...s.td, color: deviationColor, fontWeight: 600 }}>
+                                        <td className="vpt-td">{visual.expected}%</td>
+                                        <td className={`vpt-td ${deviationClass}`}>
                                             {visual.deviation > 0 ? `+${visual.deviation.toFixed(2)}%` : `${visual.deviation.toFixed(2)}%`}
                                         </td>
-                                        <td style={s.td}>Visual</td>
-                                        <td style={{ ...s.td, color: visual.activeRisks > 0 ? '#E07A00' : '#777', fontWeight: 600 }}>
+                                        <td className="vpt-td">Visual</td>
+                                        <td className={`vpt-td ${risksClass}`}>
                                             {visual.activeRisks}
                                         </td>
-                                        <td style={s.td}>
-                                            <span style={{ ...s.semaphorePill, color: visual.semaphore.color, backgroundColor: visual.semaphore.bg }}>
+                                        <td className="vpt-td">
+                                            <span
+                                                className="vpt-semaphore-pill"
+                                                style={{ '--vpt-semaphore-color': visual.semaphore.color, '--vpt-semaphore-bg': visual.semaphore.bg }}
+                                            >
                                                 {visual.semaphore.label}
                                             </span>
                                         </td>
-                                        <td style={s.td}>
+                                        <td className="vpt-td">
                                             <button
-                                                style={s.btnView}
+                                                className="vpt-btn-view"
                                                 onClick={() => navigate(`/projects/${project.id_project}/view`, {
                                                     state: { projectName: project.project_name }
                                                 })}
@@ -170,112 +178,7 @@ export default function ViewerProjectsTable() {
                 </div>
             )}
 
-            <div style={s.footerRow}>Mostrando {filtered.length} de {projects.length} proyectos</div>
+            <div className="vpt-footer-row">Mostrando {filtered.length} de {projects.length} proyectos</div>
         </div>
     );
 }
-
-const s = {
-    cardWrap: { width: '100%', backgroundColor: '#FFF', border: '1px solid #E7E4DD', borderRadius: 6, overflow: 'hidden' },
-    headerRow: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '10px 12px',
-        borderBottom: '1px solid #ECE8DE',
-        gap: 10,
-        flexWrap: 'wrap',
-    },
-    blockTitle: { fontSize: 14, fontWeight: 600, color: '#2C2C2C' },
-    actions: { display: 'flex', gap: 8, alignItems: 'center' },
-    search: {
-        height: 28,
-        width: 180,
-        border: '1px solid #DEDAD0',
-        borderRadius: 4,
-        padding: '0 8px',
-        backgroundColor: '#FAFAF8',
-        fontSize: 12,
-    },
-    btnGhost: {
-        height: 28,
-        border: '1px solid #DEDAD0',
-        backgroundColor: '#FFF',
-        borderRadius: 4,
-        padding: '0 10px',
-        fontSize: 12,
-        color: '#444',
-        cursor: 'pointer',
-    },
-    tableContainer: { width: '100%', overflowX: 'auto' },
-    table: { width: '100%', borderCollapse: 'collapse', minWidth: 1080 },
-    th: {
-        textAlign: 'left',
-        fontSize: 10,
-        color: '#8A8A8A',
-        letterSpacing: '0.06em',
-        fontWeight: 700,
-        padding: '10px 10px',
-        borderBottom: '1px solid #ECE8DE',
-        backgroundColor: '#F7F6F2',
-        whiteSpace: 'nowrap',
-    },
-    td: {
-        fontSize: 12,
-        color: '#333',
-        padding: '10px 10px',
-        borderBottom: '1px solid #F1EEE8',
-        whiteSpace: 'nowrap',
-    },
-    projectCell: { color: '#CF2030', fontWeight: 600 },
-    activePill: {
-        display: 'inline-block',
-        borderRadius: 999,
-        padding: '2px 8px',
-        fontSize: 10,
-        fontWeight: 600,
-        color: '#2453C9',
-        backgroundColor: '#E7EEFF',
-    },
-    progressWrap: { display: 'flex', alignItems: 'center', gap: 8 },
-    progressTrack: { width: 52, height: 4, borderRadius: 999, backgroundColor: '#E9E4DA', overflow: 'hidden' },
-    progressFill: { height: '100%', borderRadius: 999 },
-    semaphorePill: {
-        display: 'inline-block',
-        borderRadius: 999,
-        padding: '2px 10px',
-        fontSize: 10,
-        fontWeight: 700,
-    },
-    btnView: {
-        height: 24,
-        border: '1px solid #DEDAD0',
-        backgroundColor: '#FFF',
-        borderRadius: 6,
-        padding: '0 10px',
-        fontSize: 11,
-        cursor: 'pointer',
-    },
-    footerRow: {
-        padding: '9px 12px',
-        fontSize: 11,
-        color: '#8A8A8A',
-        borderTop: '1px solid #ECE8DE',
-        backgroundColor: '#FAFAF8',
-    },
-    empty: {
-        padding: '24px 14px',
-        textAlign: 'center',
-        color: '#8A8A8A',
-        fontSize: 13,
-        backgroundColor: '#FFF',
-    },
-    error: {
-        padding: '10px 12px',
-        border: '1px solid #FFCDD2',
-        borderRadius: 4,
-        backgroundColor: '#FFF5F5',
-        color: '#B71C1C',
-        fontSize: 13,
-    },
-};
