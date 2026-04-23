@@ -10,7 +10,7 @@ import ProjectsPage   from '../features/projects/ProjectsPage';
 import ViewerProjectWorkspacePage from '../features/projects/ViewerProjectWorkspacePage';
 import ViewerProjectBacklogPage from '../features/projects/ViewerProjectBacklogPage';
 import ViewerWorkItemDetailPage from '../features/projects/ViewerWorkItemDetailPage';
-import SprintsPage from '../features/sprints/SprintsPage'
+import SprintsPage from '../features/sprints/SprintsPage';
 import CreateProjectPage from '../features/projects/CreateProjectPage';
 import UsersPage      from '../features/users/UsersPage';
 import AuditPage      from '../features/audit/AuditPage';
@@ -39,6 +39,7 @@ export default function AppRouter() {
                             </ProtectedRoute>
                         }
                     >
+                        
                         <Route index element={<Navigate to="/projects" replace />} />
                         <Route path="/home"     element={<HomePage />} />
                         <Route path="/projects" element={<ProjectsPage />} />
@@ -63,7 +64,11 @@ export default function AppRouter() {
                             element={
                                 <ProtectedRoute roles={['viewer']}>
                                     <ViewerWorkItemDetailPage />
-                            path='/projects/:id/sprints' 
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/projects/:id/sprints"
                             element={
                                 <ProtectedRoute roles={['viewer', 'pm']}>
                                     <SprintsPage />
@@ -92,6 +97,7 @@ export default function AppRouter() {
 
                     {/* Catch-all */}
                     <Route path="*" element={<Navigate to="/projects" replace />} />
+                    
                 </Routes>
             </AuthProvider>
         </BrowserRouter>
