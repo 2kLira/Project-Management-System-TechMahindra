@@ -7,6 +7,7 @@ const authRoutes = require('./modules/auth/auth.routes');
 const projectRoutes = require('./modules/projects/projects.routes');
 const userRoutes = require('./modules/users/users.routes');
 const workItemsRoutes = require('./modules/work_items/work_items.routes');
+const sprintRoutes = require('./modules/sprints/sprints.routes')
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/auth', authRoutes);
 app.use('/projects', projectRoutes);
 app.use('/users', userRoutes);
 app.use('/work-items', workItemsRoutes);
+app.use('/sprints-consult', sprintRoutes)
 
 app.use(errorHandler);
 
