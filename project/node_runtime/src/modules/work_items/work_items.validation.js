@@ -15,7 +15,15 @@ const assignWorkItemSchema = z.object({
     assignee_id: z.union([z.coerce.number(), z.null()]),
 });
 
+// HU-10 — cambiar estado. CA-02: solo 'todo', 'in_progress', 'done'.
+const updateStatusSchema = z.object({
+    status: z.enum(['todo', 'in_progress', 'done'], {
+        message: "CA-02: el estado debe ser 'todo', 'in_progress' o 'done'",
+    }),
+});
+
 module.exports = {
     createWorkItemSchema,
     assignWorkItemSchema,
+    updateStatusSchema,
 };
