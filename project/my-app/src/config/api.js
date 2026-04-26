@@ -30,6 +30,16 @@ const api = {
         return { res, data: await safeJson(res) };
     },
 
+    patch: async (path, body) => {
+        const res = await fetch(`${BASE_URL}${path}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(body),
+        });
+        return { res, data: await safeJson(res) };
+    },
+
     delete: async (path) => {
         const res = await fetch(`${BASE_URL}${path}`, {
             method: 'DELETE',

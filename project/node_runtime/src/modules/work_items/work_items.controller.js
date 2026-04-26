@@ -99,7 +99,7 @@ async function listWorkItems(req, res) {
 
         const { data: items, error: itemsErr } = await supabase
             .from('work_item')
-            .select('id_work_item, id_project, id_sprint, title, description, assignee_id, created_by, created_at, updated_at')
+            .select('id_work_item, id_project, id_sprint, title, description, status, type, story_points, assignee_id, created_by, created_at, updated_at')
             .eq('id_project', projectId)
             .order('created_at', { ascending: false });
 
@@ -302,8 +302,173 @@ async function assignWorkItem(req, res) {
     }
 }
 
+// =====================================================
+// PATCH /work-items/:id/status
+// HU-10 — Viewer cambia el estado de sus items asignados.
+//
+//   CA-01: solo el assignee puede cambiar el estado de sus items.
+//          Admin y PM del proyecto también pueden hacerlo.
+//   CA-02: estados válidos: 'todo', 'in_progress', 'done' (validado por Zod).
+//   CA-03: cada cambio guarda fecha (updated_at) y usuario en audit_log.
+//   CA-04: si el estado cambia a 'done', actualizar gamification y scorehistory.
+// =====================================================
+async function updateWorkItemStatus(req, res) {
+    try {
+        const itemId = parseInt(req.params.id);
+        const { status } = req.body;
+        const { id_user, role } = req.user;
+
+        // 1. Cargar el item
+        const { data: item, error: itemErr } = await supabase
+            .from('work_item')
+            .select('id_work_item, id_project, title, status, assignee_id, story_points, gamification_weight')
+            .eq('id_work_item', itemId)
+            .single();
+
+        if (itemErr || !item) {
+            return res.status(404).json({ message: 'Item no encontrado' });
+        }
+
+        // 2. CA-01: verificar que el usuario puede cambiar el estado
+        if (role === 'viewer') {
+            if (item.assignee_id !== id_user) {
+                return res.status(403).json({
+                    message: 'CA-01: solo puedes cambiar el estado de items que tienes asignados',
+                });
+            }
+        } else if (role === 'pm') {
+            const { data: project } = await supabase
+                .from('project')
+                .select('id_pm')
+                .eq('id_project', item.id_project)
+                .single();
+            if (!project || project.id_pm !== id_user) {
+                return res.status(403).json({
+                    message: 'Solo el PM dueño del proyecto puede cambiar estados de items ajenos',
+                });
+            }
+        }
+        // admin: sin restricción adicional
+
+        // 3. No-op si el estado ya es el mismo
+        if (item.status === status) {
+            return res.status(200).json({
+                message: 'El estado ya era ese; no se realizó cambio',
+                item,
+            });
+        }
+
+        const previousStatus = item.status;
+        const now = new Date().toISOString();
+
+        // 4. Persistir cambio — CA-03: updated_at se actualiza
+        const { data: updated, error: updErr } = await supabase
+            .from('work_item')
+            .update({ status, updated_at: now })
+            .eq('id_work_item', itemId)
+            .select()
+            .single();
+
+        if (updErr) {
+            return res.status(500).json({ message: 'Error actualizando estado', error: updErr.message });
+        }
+
+        // 5. CA-03: auditoría con fecha y usuario responsable
+        await supabase.from('audit_log').insert([{
+            id_user,
+            action: 'UPDATE_WORK_ITEM_STATUS',
+            entity: 'work_item',
+            entity_id: String(itemId),
+            payload: {
+                project_id: item.id_project,
+                item_title: item.title,
+                from: previousStatus,
+                to: status,
+                changed_at: now,
+            },
+        }]);
+
+        // 6. CA-04: si pasa a 'done', actualizar gamification + scorehistory
+        if (status === 'done' && item.assignee_id) {
+            const weight = item.gamification_weight || 1;
+
+            // Buscar o crear registro de gamification para el assignee
+            const { data: gam } = await supabase
+                .from('gamification')
+                .select('id_gamification, level')
+                .eq('id_user', item.assignee_id)
+                .single();
+
+            let gamId, oldLevel, newLevel;
+
+            if (gam) {
+                oldLevel = gam.level || 0;
+                newLevel = oldLevel + weight;
+                gamId = gam.id_gamification;
+                await supabase
+                    .from('gamification')
+                    .update({ level: newLevel })
+                    .eq('id_gamification', gamId);
+            } else {
+                oldLevel = 0;
+                newLevel = weight;
+                const { data: created } = await supabase
+                    .from('gamification')
+                    .insert([{ id_user: item.assignee_id, level: newLevel }])
+                    .select()
+                    .single();
+                gamId = created?.id_gamification;
+            }
+
+            // Registrar en scorehistory
+            if (gamId) {
+                await supabase.from('scorehistory').insert([{
+                    id_gamification: gamId,
+                    level_gained: weight,
+                    old_level: oldLevel,
+                    new_level: newLevel,
+                }]);
+            }
+        }
+
+        // 7. Si vuelve de 'done' a otro estado, revertir gamification
+        if (previousStatus === 'done' && status !== 'done' && item.assignee_id) {
+            const weight = item.gamification_weight || 1;
+            const { data: gam } = await supabase
+                .from('gamification')
+                .select('id_gamification, level')
+                .eq('id_user', item.assignee_id)
+                .single();
+
+            if (gam) {
+                const oldLevel = gam.level || 0;
+                const newLevel = Math.max(0, oldLevel - weight);
+                await supabase
+                    .from('gamification')
+                    .update({ level: newLevel })
+                    .eq('id_gamification', gam.id_gamification);
+
+                await supabase.from('scorehistory').insert([{
+                    id_gamification: gam.id_gamification,
+                    level_gained: -weight,
+                    old_level: oldLevel,
+                    new_level: newLevel,
+                }]);
+            }
+        }
+
+        return res.status(200).json({
+            message: 'Estado actualizado',
+            item: updated,
+        });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+}
+
 module.exports = {
     listWorkItems,
     createWorkItem,
     assignWorkItem,
+    updateWorkItemStatus,
 };

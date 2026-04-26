@@ -1,20 +1,90 @@
+import { useEffect, useState, useCallback } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAuthContext } from '../../shared/context/AuthContext';
+import api from '../../config/api';
 import './ViewerProjectBacklogPage.css';
-import {
-    getBacklogItemsForProject,
-    getStatusBadgeColors,
-    getTypeBadgeColors,
-    initialsFromName,
-} from './viewerBacklogMock';
+
+const STATUS_LABELS = {
+    todo: 'Por hacer',
+    in_progress: 'En curso',
+    done: 'Finalizada',
+};
+
+const TYPE_LABELS = {
+    user_story: 'Historia',
+    task: 'Tarea',
+    bug: 'Bug',
+};
+
+function statusBadgeColors(status) {
+    if (status === 'done') return { color: '#3C9A57', bg: '#E9F7ED' };
+    if (status === 'in_progress') return { color: '#3162D1', bg: '#E7EEFF' };
+    return { color: '#7E8693', bg: '#EEF1F5' };
+}
+
+function typeBadgeColors(type) {
+    if (type === 'bug') return { color: '#B94A48', bg: '#FCE9E9' };
+    if (type === 'user_story') return { color: '#3162D1', bg: '#E7EEFF' };
+    return { color: '#3C9A57', bg: '#E9F7ED' };
+}
+
+function initialsFrom(name) {
+    const parts = String(name || '').split(' ').filter(Boolean);
+    return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+}
 
 export default function ViewerProjectBacklogPage() {
     const { id } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const { user } = useAuthContext();
+    const projectName = location.state?.projectName || `Proyecto ${id}`;
 
-    // If route state is missing (e.g. page refresh), fallback to a safe title.
-    const projectName = location.state?.projectName || `Project ${id}`;
-    const backlogRows = getBacklogItemsForProject(id);
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [message, setMessage] = useState({ text: '', type: '' });
+
+    const loadItems = useCallback(async () => {
+        try {
+            const { res, data } = await api.get(`/work-items?project_id=${id}`);
+            if (res.ok) {
+                setItems(data.items || []);
+            } else {
+                setMessage({ text: data.message || 'Error cargando items', type: 'error' });
+            }
+        } catch {
+            setMessage({ text: 'Error de conexión con el servidor', type: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    }, [id]);
+
+    useEffect(() => { loadItems(); }, [loadItems]);
+
+    async function handleStatusChange(itemId, newStatus) {
+        setMessage({ text: '', type: '' });
+        try {
+            const { res, data } = await api.patch(`/work-items/${itemId}/status`, { status: newStatus });
+            if (res.ok) {
+                setMessage({ text: 'Estado actualizado', type: 'success' });
+                loadItems();
+            } else {
+                setMessage({ text: data.message || 'Error actualizando estado', type: 'error' });
+            }
+        } catch {
+            setMessage({ text: 'Error de conexión', type: 'error' });
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="vpb-page">
+                <div className="vpb-content-wrap" style={{ textAlign: 'center', paddingTop: 60, color: '#888' }}>
+                    Cargando items...
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="vpb-page">
@@ -22,17 +92,29 @@ export default function ViewerProjectBacklogPage() {
                 <div className="vpb-breadcrumb">
                     <span className="vpb-crumb-accent">{projectName}</span>
                     <span>/</span>
-                    <span className="vpb-crumb-accent">Sprint 4 Board</span>
-                    <span>/</span>
                     <span>Backlog</span>
                 </div>
-                <button className="vpb-back-btn" onClick={() => navigate(`/projects/${id}/view`, { state: { projectName } })}>
-                    ← Back to Board
+                <button className="vpb-back-btn" onClick={() => navigate(`/projects`)}>
+                    ← Volver a proyectos
                 </button>
             </div>
 
             <div className="vpb-content-wrap">
-                <h1 className="vpb-title">Backlog</h1>
+                <h1 className="vpb-title">Items del proyecto</h1>
+
+                {message.text && (
+                    <div style={{
+                        padding: '10px 14px',
+                        marginBottom: 14,
+                        borderRadius: 4,
+                        fontSize: 13,
+                        backgroundColor: message.type === 'error' ? '#FFF5F5' : '#F1F8E9',
+                        border: `1px solid ${message.type === 'error' ? '#FFCDD2' : '#C5E1A5'}`,
+                        color: message.type === 'error' ? '#B71C1C' : '#33691E',
+                    }}>
+                        {message.text}
+                    </div>
+                )}
 
                 <div className="vpb-table-card">
                     <div className="vpb-table-scroll">
@@ -40,51 +122,79 @@ export default function ViewerProjectBacklogPage() {
                             <thead>
                                 <tr>
                                     <th className="vpb-th-item">ITEM</th>
-                                    <th className="vpb-th">TYPE</th>
+                                    <th className="vpb-th">TIPO</th>
                                     <th className="vpb-th">SP</th>
-                                    <th className="vpb-th">TARGET DATE</th>
-                                    <th className="vpb-th">STATUS</th>
-                                    <th className="vpb-th">ASSIGNEE</th>
-                                    <th className="vpb-th">ACTIONS</th>
+                                    <th className="vpb-th">ESTADO</th>
+                                    <th className="vpb-th">RESPONSABLE</th>
+                                    <th className="vpb-th">CAMBIAR ESTADO</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {backlogRows.map((item) => {
-                                    const type = getTypeBadgeColors(item.type);
-                                    const status = getStatusBadgeColors(item.status);
+                                {items.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} style={{ textAlign: 'center', padding: 24, color: '#888', fontSize: 13 }}>
+                                            Sin items en este proyecto
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    items.map(item => {
+                                        const type = typeBadgeColors(item.type);
+                                        const status = statusBadgeColors(item.status);
+                                        const isMyItem = item.assignee_id === user?.id;
+                                        const assigneeName = item.assignee?.username || 'Sin asignar';
 
-                                    // Highlight urgent row to mirror the design reference.
-                                    return (
-                                        <tr key={item.id} className={item.blockerCount > 0 ? 'vpb-highlight-row' : undefined}>
-                                            <td className="vpb-td-item">
-                                                <div className={item.blockerCount > 0 ? 'vpb-item-important' : undefined}>{item.title}</div>
-                                                {item.blockedSummary && <div className="vpb-blocked-text">⚠ {item.blockedSummary}</div>}
-                                            </td>
-                                            <td className="vpb-td">
-                                                <span className="vpb-pill" style={{ color: type.color, backgroundColor: type.bg }}>{item.type}</span>
-                                            </td>
-                                            <td className="vpb-td-strong">{item.storyPoints}</td>
-                                            <td className={String(item.targetDate || '').includes('Overdue') ? 'vpb-td vpb-target-overdue' : 'vpb-td vpb-target-warn'}>{item.targetDate}</td>
-                                            <td className="vpb-td">
-                                                <span className="vpb-pill" style={{ color: status.color, backgroundColor: status.bg }}>{item.status}</span>
-                                            </td>
-                                            <td className="vpb-td">
-                                                <div className="vpb-assignee-wrap">
-                                                    <span className="vpb-avatar">{initialsFromName(item.assignee).toUpperCase()}</span>
-                                                    <span>{item.assignee}</span>
-                                                </div>
-                                            </td>
-                                            <td className="vpb-td">
-                                                <button
-                                                    className="vpb-view-btn"
-                                                    onClick={() => navigate(`/projects/${id}/backlog/${item.id}`, { state: { projectName } })}
-                                                >
-                                                    View
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                        return (
+                                            <tr key={item.id_work_item}>
+                                                <td className="vpb-td-item">
+                                                    <div style={{ fontWeight: 500 }}>{item.title}</div>
+                                                    {item.description && (
+                                                        <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{item.description}</div>
+                                                    )}
+                                                </td>
+                                                <td className="vpb-td">
+                                                    <span className="vpb-pill" style={{ color: type.color, backgroundColor: type.bg }}>
+                                                        {TYPE_LABELS[item.type] || item.type}
+                                                    </span>
+                                                </td>
+                                                <td className="vpb-td-strong">{item.story_points ?? 0}</td>
+                                                <td className="vpb-td">
+                                                    <span className="vpb-pill" style={{ color: status.color, backgroundColor: status.bg }}>
+                                                        {STATUS_LABELS[item.status] || item.status}
+                                                    </span>
+                                                </td>
+                                                <td className="vpb-td">
+                                                    <div className="vpb-assignee-wrap">
+                                                        <span className="vpb-avatar">{initialsFrom(assigneeName)}</span>
+                                                        <span>{assigneeName}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="vpb-td">
+                                                    {isMyItem ? (
+                                                        <select
+                                                            value={item.status}
+                                                            onChange={(e) => handleStatusChange(item.id_work_item, e.target.value)}
+                                                            style={{
+                                                                height: 28,
+                                                                padding: '0 8px',
+                                                                fontSize: 11,
+                                                                border: '1px solid #DEDAD0',
+                                                                borderRadius: 5,
+                                                                backgroundColor: '#FFF',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            <option value="todo">Por hacer</option>
+                                                            <option value="in_progress">En curso</option>
+                                                            <option value="done">Finalizada</option>
+                                                        </select>
+                                                    ) : (
+                                                        <span style={{ fontSize: 11, color: '#AAA' }}>—</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
                             </tbody>
                         </table>
                     </div>
