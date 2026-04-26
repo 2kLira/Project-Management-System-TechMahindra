@@ -147,7 +147,7 @@ export default function UserManagement({ currentUser }) {
               <label className="um-label">Nombre completo</label>
               <input
                 className="um-input"
-                placeholder="ej. Mario Burgos"
+                placeholder="ej. Juan Pérez"
                 value={form.full_name}
                 onChange={e => setForm({ ...form, full_name: e.target.value })}
               />
@@ -156,7 +156,7 @@ export default function UserManagement({ currentUser }) {
               <label className="um-label">Correo electrónico</label>
               <input
                 className="um-input"
-                placeholder="ej. mario@tec.mx"
+                placeholder="ej. juan.perez@empresa.com"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
               />
