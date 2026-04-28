@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import api from '../../config/api';
 import { useAuthContext } from '../../shared/context/AuthContext';
 import CreateSprint from './CreateSprint'
 import './SprintsPage.css'
+
+
+   /* { key: 'board', label: 'Sprint Board', icon: '▥', kind: 'link', suffix: 'sprintboard'}, */
+
 
 export default function SprintsPage(){
     const { user } = useAuthContext()
@@ -18,7 +22,7 @@ export default function SprintsPage(){
             try{
                 console.log(id)
 
-                const sprint = await api.get(`/sprints-consult/${id}/sprints`)
+                const sprint = await api.get(`/sprints/${id}/get-sprints`)
 
                 console.log(sprint)
 
@@ -63,7 +67,7 @@ export default function SprintsPage(){
         </div>
             <div className="sprint-toolbar">
             <div className="sprint-toolbar-left">
-                <label htmlFor="status">Filtrar estados de sprints</label>
+                <label htmlFor="status">Filter state of sprints</label>
                 <select id="status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                 <option value="All_sprints">All sprints</option>
                 <option value="planned">Planned</option>
@@ -73,7 +77,7 @@ export default function SprintsPage(){
                 </select>
             </div>
 
-            {(user.role === "viewer" || user.role === "admin") && (
+            {(user.role === "pm" || user.role === "admin") && (
                 <button className="btn-new-sprint" onClick={() => setIsPanelOpen(true)}>
                 + Crear sprint
                 </button>
@@ -93,9 +97,17 @@ export default function SprintsPage(){
                     <tr key={sprint.id_sprint}>
                     <td>{sprint.name}</td>
                     <td>{sprint.begin_at ? sprint.begin_at.slice(0, 10) : '—'}</td>
-                    <td>{sprint.deadline   ? sprint.deadline.slice(0, 10)   : '—'}</td>
+                    <td>{sprint.deadline ? sprint.deadline.slice(0, 10) : '—'}</td>
                     <td><span className={`badge badge-${sprint.status}`}>{sprint.status}</span></td>
-                    <td><button className="btn-view">View</button></td>
+                    <td>
+                    <Link
+                        key={sprint.id_sprint}
+                        to={`/projects/${id}/sprint-board/${sprint.id_sprint}`}
+                        state={{ sprint: sprint }}
+                    >
+                        <button className="btn-view">View</button>
+                    </Link>
+                    </td>
                     </tr>
                 ))}
                 </tbody>
