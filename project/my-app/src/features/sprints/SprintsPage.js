@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import api from '../../config/api';
 import { useAuthContext } from '../../shared/context/AuthContext';
 import CreateSprint from './CreateSprint'
@@ -13,7 +13,7 @@ export default function SprintsPage(){
     const { user } = useAuthContext()
     const { id } = useParams();
     const [tasksByStatus, setTasksByStatus] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
     const [isPanelOpen, setIsPanelOpen] = useState(false)
     const [statusFilter, setStatusFilter] = useState('All_sprints');
 
@@ -53,8 +53,8 @@ export default function SprintsPage(){
                 setLoading(false)
             }
         }
-        consultSprint(); 
-    }, [] )
+        consultSprint();
+    }, [id])
 
     const filteredSprints = statusFilter === 'All_sprints'
         ? tasksByStatus?.all_sprints

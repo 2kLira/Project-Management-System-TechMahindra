@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import "./SprintBoard.css";
-import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import api from '../../config/api';
 import { useAuthContext } from '../../shared/context/AuthContext';
 
@@ -47,7 +47,6 @@ const BADGE_CLASS = {
 };
 
 // ─── ICONS ────────────────────────────────────────────────────────────────────
-const IconPlus = () => <svg width="14" height="14" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>;
 const IconSearch = () => <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>;
 const IconFilter = () => <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M11 18h2" /></svg>;
 const IconClock = () => <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>;
@@ -136,8 +135,8 @@ const FormField = ({ label, required, children }) => (
 );
 
 const AddWorkItemForm = () => {
-  
-  const { id, id_sprint } = useParams();
+
+  const { id_sprint } = useParams();
 
   const { user } = useAuthContext();
 
@@ -240,7 +239,7 @@ const AddWorkItemForm = () => {
 export default function SprintBoard() {
 
   const location = useLocation();
-  const { id, id_sprint } = useParams();
+  const { id_sprint } = useParams();
   const [sprint, setSprint] = useState(location.state?.sprint);
   const [columns, setColumns] = useState(INITIAL_COLUMNS);
 
@@ -268,7 +267,7 @@ export default function SprintBoard() {
       getWorkItems();
       getSprint();
     }
-  }, [id_sprint])
+  }, [id_sprint, sprint])
 
   if (!sprint) return <p>Cargando...</p>;
 
@@ -293,7 +292,7 @@ export default function SprintBoard() {
     <div className="sprint-board">
 
       <nav className="breadcrumb">
-        <a href="#">Alpha Banking Portal</a>
+        <span>Alpha Banking Portal</span>
         <span>›</span>
         <span>Backlog</span>
       </nav>
