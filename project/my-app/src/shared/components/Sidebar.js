@@ -1,10 +1,15 @@
 import { NavLink, useLocation, useParams } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext';
-import { ICONS, NAV_ITEMS, VIEWER_NAV_ITEMS } from './Sidebar.constants';
-import SidebarViewerProjectSection from './SidebarViewerProjectSection';
+import {
+    ICONS,
+    NAV_ITEMS,
+    VIEWER_GLOBAL_ITEMS,
+    PROJECT_NAV_ITEMS,
+} from './Sidebar.constants';
+import SidebarProjectSection from './SidebarProjectSection';
 import './Sidebar.css';
 
-/** Extrae las iniciales de un username */
+/** Extrae iniciales del username para el avatar */
 function getInitials(username = '') {
     return username
         .split(/[\s_-]+/)
@@ -14,41 +19,68 @@ function getInitials(username = '') {
         .toUpperCase() || '?';
 }
 
+/**
+ * Sidebar unificado con RBAC real.
+ *
+ * Reglas de visibilidad:
+ *   - La sección "proyecto" aparece para TODOS los roles cuando el usuario
+ *     está en una ruta /projects/:id/...  Los items dentro se filtran por rol.
+ *   - viewer  → sección "My Work" + "Recognition" + proyecto si aplica
+ *   - pm/admin → sección "General" + "Inteligencia" + proyecto si aplica
+ *
+ * Espeja exactamente los roles definidos en AppRouter → ProtectedRoute.
+ */
 export default function Sidebar({ onLogout }) {
-    const { user } = useAuthContext();
+    const { user }  = useAuthContext();
     const location  = useLocation();
     const params    = useParams();
 
-    const isViewer = user?.role === 'viewer';
-    const isViewerProjectWorkspace =
-        isViewer && /^\/projects\/\d+\/(view|backlog|sprints)$/.test(location.pathname);
+    const role     = user?.role ?? '';
+    const isViewer = role === 'viewer';
 
-    const projectId            = params?.id;
+    // ── Detección de contexto de proyecto ────────────────────────────────────
+    // Coincide con /projects/:id/cualquier-subruta
+    const projectRouteMatch = /^\/projects\/(\d+)\//.exec(location.pathname);
+    const isInProject       = !!projectRouteMatch;
+    const contextProjectId  = params?.id ?? projectRouteMatch?.[1] ?? null;
+
     const projectNameFromState = location.state?.projectName;
-    const projectSectionTitle  = (
-        projectNameFromState || `Proyecto ${projectId || ''}`
+    const projectLabel = (
+        projectNameFromState || `Proyecto ${contextProjectId || ''}`
     ).toUpperCase();
 
-    /* Filtrado de items por rol */
-    const visible = (isViewer ? VIEWER_NAV_ITEMS : NAV_ITEMS).filter(item =>
-        !item.roles || (user && item.roles.includes(user.role))
-    );
+    const projectState = { projectName: projectNameFromState };
 
-    const general      = visible.filter(i => i.section === 'general');
-    const intelligence = visible.filter(i => i.section === 'inteligencia');
-    const myWork       = visible.filter(i => i.section === 'my_work');
-    const recognition  = visible.filter(i => i.section === 'recognition');
-
+    // ── Clases de NavLink ─────────────────────────────────────────────────────
     const navClass = ({ isActive }) =>
         'sb-nav-item' + (isActive ? ' sb-nav-item-active' : '');
 
     const projectMenuClass = ({ isActive }) =>
         'sb-nav-item sb-nav-item-project' + (isActive ? ' sb-nav-item-active' : '');
 
+    // ── Navegación global filtrada por rol ────────────────────────────────────
+    const globalItems = (isViewer ? VIEWER_GLOBAL_ITEMS : NAV_ITEMS).filter(
+        item => !item.roles || item.roles.includes(role)
+    );
+
+    const sectionGeneral      = globalItems.filter(i => i.section === 'general');
+    const sectionInteligencia = globalItems.filter(i => i.section === 'inteligencia');
+    const sectionMyWork       = globalItems.filter(i => i.section === 'my_work');
+    const sectionRecognition  = globalItems.filter(i => i.section === 'recognition');
+
+    // ── Render helper ─────────────────────────────────────────────────────────
+    const renderNavItems = items =>
+        items.map(item => (
+            <NavLink key={item.to} to={item.to} className={navClass}>
+                <span className="sb-icon">{ICONS[item.icon]}</span>
+                {item.label}
+            </NavLink>
+        ));
+
     return (
         <aside className="sb-sidebar">
 
-            {/* ── Logo ── */}
+            {/* ── Logo ─────────────────────────────────────────────────────── */}
             <div className="sb-logo-wrap">
                 <div className="sb-logo-box">
                     <div className="sb-logo-icon">T</div>
@@ -61,77 +93,59 @@ export default function Sidebar({ onLogout }) {
                 </div>
             </div>
 
-            {/* ── Navegación ── */}
+            {/* ── Navegación ───────────────────────────────────────────────── */}
+
             {isViewer ? (
+                /* ── VIEWER ──────────────────────────────────────────────── */
                 <>
                     <div className="sb-section">
                         <div className="sb-section-label">My Work</div>
-
-                        {isViewerProjectWorkspace ? (
-                            <>
-                                <NavLink to="/home" className={navClass}>
-                                    <span className="sb-icon">{ICONS.personal}</span>
-                                    Personal Dashboard
-                                </NavLink>
-                                <NavLink to="/projects" className={navClass}>
-                                    <span className="sb-icon">{ICONS.projects}</span>
-                                    Projects
-                                </NavLink>
-                            </>
-                        ) : (
-                            myWork.map(item => (
-                                <NavLink key={item.to} to={item.to} className={navClass}>
-                                    <span className="sb-icon">{ICONS[item.icon]}</span>
-                                    {item.label}
-                                </NavLink>
-                            ))
-                        )}
+                        {renderNavItems(sectionMyWork)}
                     </div>
 
-                    {isViewerProjectWorkspace && (
-                        <SidebarViewerProjectSection
-                            projectId={projectId}
-                            sectionLabel={projectSectionTitle}
-                            projectNameState={projectNameFromState}
-                            projectMenuClass={projectMenuClass}
+                    {/* Sección de proyecto: aparece para viewer también */}
+                    {isInProject && contextProjectId && (
+                        <SidebarProjectSection
+                            projectId={contextProjectId}
+                            projectLabel={projectLabel}
+                            projectState={projectState}
+                            role={role}
+                            menuClass={projectMenuClass}
                         />
                     )}
 
                     <div className="sb-section">
                         <div className="sb-section-label">Recognition</div>
-                        {recognition.map(item => (
-                            <NavLink key={item.to} to={item.to} className={navClass}>
-                                <span className="sb-icon">{ICONS[item.icon]}</span>
-                                {item.label}
-                            </NavLink>
-                        ))}
+                        {renderNavItems(sectionRecognition)}
                     </div>
                 </>
             ) : (
+                /* ── PM / ADMIN ───────────────────────────────────────────── */
                 <>
                     <div className="sb-section">
                         <div className="sb-section-label">General</div>
-                        {general.map(item => (
-                            <NavLink key={item.to} to={item.to} className={navClass}>
-                                <span className="sb-icon">{ICONS[item.icon]}</span>
-                                {item.label}
-                            </NavLink>
-                        ))}
+                        {renderNavItems(sectionGeneral)}
                     </div>
+
+                    {/* ✅ Sección de proyecto para PM y admin */}
+                    {isInProject && contextProjectId && (
+                        <SidebarProjectSection
+                            projectId={contextProjectId}
+                            projectLabel={projectLabel}
+                            projectState={projectState}
+                            role={role}
+                            menuClass={projectMenuClass}
+                        />
+                    )}
 
                     <div className="sb-section">
                         <div className="sb-section-label">Inteligencia</div>
-                        {intelligence.map(item => (
-                            <NavLink key={item.to} to={item.to} className={navClass}>
-                                <span className="sb-icon">{ICONS[item.icon]}</span>
-                                {item.label}
-                            </NavLink>
-                        ))}
+                        {renderNavItems(sectionInteligencia)}
                     </div>
                 </>
             )}
 
-            {/* ── Footer: usuario + logout ── */}
+            {/* ── Footer: usuario + logout ──────────────────────────────────── */}
             <div className="sb-logout-wrap">
                 <div className="sb-user-info">
                     <div className="sb-user-avatar">
