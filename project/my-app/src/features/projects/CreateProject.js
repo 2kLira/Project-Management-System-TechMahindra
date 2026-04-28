@@ -395,7 +395,7 @@ function CreateProject({ onCancel }) {
         if (form.start_date && form.deadline && form.deadline <= form.start_date) {
             newErrors.deadline = 'El deadline debe ser después del inicio';
         }
-        if (!form.pm_id) newErrors.pm_id = 'Se requiere asignar un PM (CA-03)';
+        if (!form.pm_id) newErrors.pm_id = 'Se requiere asignar un gerente de proyecto';
         if (!form.budget.trim()) {
             newErrors.budget = 'El presupuesto es obligatorio';
         } else if (isNaN(form.budget)) {
@@ -464,21 +464,21 @@ function CreateProject({ onCancel }) {
     })();
 
     const caChecks = [
-        { label: 'CA-01 · Nombre obligatorio', ok: !!form.name.trim() },
+        { label: 'Nombre del proyecto obligatorio', ok: !!form.name.trim() },
         {
-            label: 'CA-02 · Cliente, fechas, presupuesto y SP obligatorios',
+            label: 'Cliente, fechas, presupuesto y SP obligatorios',
             ok: !!form.client.trim() && !!form.start_date && !!form.deadline && !!form.budget.trim() && !!form.story_points.trim(),
         },
         {
-            label: 'CA-03 · Deadline posterior a start',
+            label: 'El deadline debe ser posterior a la fecha de inicio',
             ok: !!form.start_date && !!form.deadline && form.deadline > form.start_date,
         },
         {
-            label: 'CA-04 · Story points > 0',
+            label: 'Los story points deben ser mayor a 0',
             ok: !!form.story_points.trim() && !isNaN(form.story_points) && parseInt(form.story_points, 10) > 0,
         },
         {
-            label: 'CA-05 · No guardar si falta obligatorio',
+            label: 'Todos los campos obligatorios completos',
             ok: !!form.name.trim() && !!form.client.trim() && !!form.start_date && !!form.deadline && !!form.budget.trim() && !!form.story_points.trim(),
         },
     ];
@@ -537,7 +537,6 @@ function CreateProject({ onCancel }) {
                         <div style={styles.card}>
                             <div style={styles.cardHeader}>
                                 <span style={styles.cardTitle}>Información del proyecto</span>
-                                <span style={styles.cardNote}>RF-04 · El nombre debe ser único</span>
                             </div>
                             <div style={styles.cardBody}>
                                 <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr' }}>
@@ -634,7 +633,6 @@ function CreateProject({ onCancel }) {
                         <div style={styles.card}>
                             <div style={styles.cardHeader}>
                                 <span style={styles.cardTitle}>Presupuesto y Story Points</span>
-                                <span style={styles.cardNote}>RF-04 · Datos financieros (solo Admin y PM)</span>
                             </div>
                             <div style={styles.cardBody}>
                                 <div style={{ ...styles.row, gridTemplateColumns: '1fr 1fr 1fr' }}>
@@ -679,7 +677,6 @@ function CreateProject({ onCancel }) {
                         <div style={styles.card}>
                             <div style={styles.cardHeader}>
                                 <span style={styles.cardTitle}>Asignación de equipo</span>
-                                <span style={styles.cardNote}>RF-05 · Se requiere exactamente un PM</span>
                             </div>
                             <div style={styles.cardBody}>
                                 <div style={{ ...styles.fieldGroup, marginBottom: '16px' }}>

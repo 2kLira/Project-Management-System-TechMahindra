@@ -1,5 +1,4 @@
 import { NavLink } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 
 const PROJECT_MENU_ITEMS = [
     { key: 'dashboard', label: 'Dashboard', icon: '▣', kind: 'link', suffix: 'view' },

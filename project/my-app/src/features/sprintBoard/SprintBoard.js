@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import './SprintBoard.css';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import "./SprintBoard.css";
+import { useLocation, useParams } from 'react-router-dom';
 import api from '../../config/api';
 import { useAuthContext } from '../../shared/context/AuthContext';
 
@@ -40,40 +40,13 @@ const BADGE_CLASS = {
     'Bug':        'badge--bug',
 };
 
-// ─── ICONS ─────────────────────────────────────────────────────────────────────
-const IconCheck = () => (
-    <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-        <polyline points="20 6 9 17 4 12" />
-    </svg>
-);
-const IconWarn = () => (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-        <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-    </svg>
-);
-const IconAlert = () => (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2L2 22h20L12 2zm0 3.5L19.5 20h-15L12 5.5zM11 10v5h2v-5h-2zm0 7v2h2v-2h-2z" />
-    </svg>
-);
-const IconClock = () => (
-    <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
-    </svg>
-);
-const IconPlus = () => (
-    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-);
-
-// ─── HELPERS ────────────────────────────────────────────────────────────────────
-function fmtDate(iso) {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
+// ─── ICONS ────────────────────────────────────────────────────────────────────
+const IconSearch = () => <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>;
+const IconFilter = () => <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M11 18h2" /></svg>;
+const IconClock = () => <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>;
+const IconCheck = () => <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>;
+const IconWarn = () => <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
+const IconAlert = () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm0 3.5L19.5 20h-15L12 5.5zM11 10v5h2v-5h-2zm0 7v2h2v-2h-2z" /></svg>;
 
 // ─── SUB-COMPONENTS ─────────────────────────────────────────────────────────────
 const Avatar = ({ id }) => (
@@ -144,9 +117,9 @@ const FormField = ({ label, required, children }) => (
     </div>
 );
 
-function AddWorkItemForm({ sprint, onCancel, onAdded }) {
-    const { id_sprint } = useParams();
-    const { user }      = useAuthContext();
+const AddWorkItemForm = () => {
+
+  const { id_sprint } = useParams();
 
     const [form, setForm] = useState({
         type: '', assignee: '', title: '', sp: 8, weight: 2,
@@ -318,9 +291,10 @@ export default function SprintBoard() {
         fetchProject();
     }, [id, projectName]);
 
-    const sprintLabel   = sprint?.name || `Sprint ${id_sprint}`;
-    const projectLabel  = projectName  || `Proyecto ${id}`;
-    const sprintNum     = sprintLabel.replace(/\D/g, '') || id_sprint;
+  const location = useLocation();
+  const { id_sprint } = useParams();
+  const [sprint, setSprint] = useState(location.state?.sprint);
+  const [columns, setColumns] = useState(INITIAL_COLUMNS);
 
     const spEstimated   = sprint?.SP_estimated ?? 55;
     const spCompleted   = 8; // TODO: calculado desde work items
@@ -333,6 +307,77 @@ export default function SprintBoard() {
             </div>
         );
     }
+  }, [id_sprint, sprint])
+
+  if (!sprint) return <p>Cargando...</p>;
+
+  const handleAdd = (form) => {
+    if (!form.type || !form.title || !form.assignee) return;
+    const newCard = {
+      id: `NEW-${Date.now()}`,
+      type: form.type,
+      title: form.title,
+      assignee: form.assignee,
+      sp: Number(form.sp),
+      due: form.date || "TBD",
+      tag: null,
+    };
+    setColumns(prev => ({
+      ...prev,
+      todo: { ...prev.todo, cards: [...prev.todo.cards, newCard] },
+    }));
+  };
+
+  return (
+    <div className="sprint-board">
+
+      <nav className="breadcrumb">
+        <span>Alpha Banking Portal</span>
+        <span>›</span>
+        <span>Backlog</span>
+      </nav>
+
+      <div className="page-header">
+        <h1 className="page-header__title">Sprint backlog</h1>
+        <div className="page-header__actions">
+          <button className="btn-icon"><IconSearch /></button>
+          <button className="btn-icon"><IconFilter /></button>
+        </div>
+      </div>
+
+      <div className="sprint-meta">
+        <div className="meta-item">
+          <span className="meta-item__label">Sprint</span>
+          <span className="meta-item__value">{sprint.name}</span>
+        </div>
+        <div className="meta-sep" />
+        <div className="meta-item">
+          <span className="meta-item__label">Dates</span>
+          <span className="meta-item__value">{sprint.begin_at ? sprint.begin_at.slice(0, 10) : '—'} to {sprint.deadline ? sprint.deadline.slice(0, 10) : '—'} </span>
+        </div>
+        <div className="meta-sep" />
+        <div className="meta-item">
+          <span className="meta-item__label">Planned SP</span>
+          <span className="meta-item__value">{sprint.SP_estimated}</span>
+        </div>
+        <div className="meta-sep" />
+        <div className="meta-item">
+          <span className="meta-item__label">Completed SP</span>
+          <span className="meta-item__value meta-item__value--accent">8 / {sprint.SP_estimated}</span>
+        </div>
+        <div className="meta-progress">
+          <div className="progress-bar">
+            <div className="progress-bar__fill" />
+          </div>
+          <span className="progress-label">15%</span>
+        </div>
+      </div>
+
+      <div className="board">
+        {Object.values(columns).map(col => (
+          <Column key={col?.id} col={col} />
+        ))}
+      </div>
 
     return (
         <div className="sprint-board">
