@@ -15,6 +15,7 @@ import CreateProjectPage from '../features/projects/CreateProjectPage';
 import UsersPage      from '../features/users/UsersPage';
 import AuditPage      from '../features/audit/AuditPage';
 import LeaderboardPage from '../features/leaderboard/LeaderboardPage';
+import SprintBoard from '../features/sprintBoard/SprintBoard';
 
 export default function AppRouter() {
     return (
@@ -72,6 +73,14 @@ export default function AppRouter() {
                             element={
                                 <ProtectedRoute roles={['viewer', 'pm']}>
                                     <SprintsPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path='/projects/:id/sprint-board/:id_sprint' 
+                            element={
+                                <ProtectedRoute roles={['viewer', 'pm']}>
+                                    <SprintBoard />
                                 </ProtectedRoute>
                             }
                         />
