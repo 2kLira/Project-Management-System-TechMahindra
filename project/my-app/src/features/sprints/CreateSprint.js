@@ -11,7 +11,7 @@ export default function CreateSprint({ onClose }) {
   const { id } = useParams();
 
   async function create_sprint() {
-    await api.post(`/sprints-consult/${id}/create-sprint`, form)
+    await api.post(`/sprints/${id}/create-sprint`, form)
   }
 
   return (
