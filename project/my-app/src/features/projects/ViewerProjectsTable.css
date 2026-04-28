@@ -179,3 +179,13 @@
     color: #B71C1C;
     font-size: 13px;
 }
+
+/* PM-specific action buttons */
+.vpt-btn-pm {
+    background-color: #F7F6F2;
+    color: #444;
+}
+
+.vpt-btn-pm:hover {
+    background-color: #EEEAE0;
+}

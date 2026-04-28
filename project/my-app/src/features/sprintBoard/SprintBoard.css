@@ -528,3 +528,38 @@ textarea.form-control {
 .btn-submit:hover {
   background: #b82f22;
 }
+/* ─── BREADCRUMB LINKS ──────────────────────────────────────────────────────── */
+.breadcrumb__link {
+  color: var(--color-red);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+.breadcrumb__link:hover { text-decoration: underline; }
+.breadcrumb__sep { color: var(--color-text-muted); }
+
+/* ─── HEADER SEARCH INPUTS ──────────────────────────────────────────────────── */
+.header-search {
+  height: 34px;
+  width: 140px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  outline: none;
+}
+.header-search::placeholder { color: var(--color-text-muted); }
+.header-search:focus { border-color: var(--color-red); }
+
+/* ─── FORM ERROR ────────────────────────────────────────────────────────────── */
+.form-error {
+  padding: 8px 12px;
+  background: var(--color-red-soft);
+  border: 1px solid var(--color-red-border);
+  border-radius: 6px;
+  color: var(--color-red);
+  font-size: 12.5px;
+}

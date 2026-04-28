@@ -8,21 +8,22 @@ import LoginPage      from '../features/auth/LoginPage';
 import HomePage       from '../features/dashboard/HomePage';
 import ProjectsPage   from '../features/projects/ProjectsPage';
 import ViewerProjectWorkspacePage from '../features/projects/ViewerProjectWorkspacePage';
-import ViewerProjectBacklogPage from '../features/projects/ViewerProjectBacklogPage';
-import ViewerWorkItemDetailPage from '../features/projects/ViewerWorkItemDetailPage';
-import SprintsPage from '../features/sprints/SprintsPage';
+import ViewerProjectBacklogPage   from '../features/projects/ViewerProjectBacklogPage';
+import ViewerWorkItemDetailPage   from '../features/projects/ViewerWorkItemDetailPage';
+import SprintsPage    from '../features/sprints/SprintsPage';
 import CreateProjectPage from '../features/projects/CreateProjectPage';
 import UsersPage      from '../features/users/UsersPage';
 import AuditPage      from '../features/audit/AuditPage';
 import LeaderboardPage from '../features/leaderboard/LeaderboardPage';
-import SprintBoard from '../features/sprintBoard/SprintBoard';
+import SprintBoard    from '../features/sprintBoard/SprintBoard';
+import WorkItemsPage  from '../features/work_items/WorkItemsPage';
 
 export default function AppRouter() {
     return (
         <BrowserRouter>
             <AuthProvider>
                 <Routes>
-                    {/* /login — redirect away if already logged in */}
+                    {/* /login — redirige si ya está autenticado */}
                     <Route
                         path="/login"
                         element={
@@ -32,7 +33,7 @@ export default function AppRouter() {
                         }
                     />
 
-                    {/* All app routes share the AppLayout (Sidebar + Outlet) */}
+                    {/* Todas las rutas de la app comparten AppLayout (Sidebar + Outlet) */}
                     <Route
                         element={
                             <ProtectedRoute>
@@ -40,18 +41,23 @@ export default function AppRouter() {
                             </ProtectedRoute>
                         }
                     >
-                        
                         <Route index element={<Navigate to="/projects" replace />} />
                         <Route path="/home"     element={<HomePage />} />
+
+                        {/* ── Proyectos ────────────────────────────────────── */}
                         <Route path="/projects" element={<ProjectsPage />} />
+
+                        {/* Vista de proyecto — viewer y PM pueden ver */}
                         <Route
                             path="/projects/:id/view"
                             element={
-                                <ProtectedRoute roles={['viewer']}>
+                                <ProtectedRoute roles={['viewer', 'pm', 'admin']}>
                                     <ViewerProjectWorkspacePage />
                                 </ProtectedRoute>
                             }
                         />
+
+                        {/* Backlog — solo viewer */}
                         <Route
                             path="/projects/:id/backlog"
                             element={
@@ -68,45 +74,61 @@ export default function AppRouter() {
                                 </ProtectedRoute>
                             }
                         />
+
+                        {/* Sprints */}
                         <Route
                             path="/projects/:id/sprints"
                             element={
-                                <ProtectedRoute roles={['viewer', 'pm']}>
+                                <ProtectedRoute roles={['viewer', 'pm', 'admin']}>
                                     <SprintsPage />
                                 </ProtectedRoute>
                             }
                         />
                         <Route
-                            path='/projects/:id/sprint-board/:id_sprint' 
+                            path="/projects/:id/sprint-board/:id_sprint"
                             element={
-                                <ProtectedRoute roles={['viewer', 'pm']}>
+                                <ProtectedRoute roles={['viewer', 'pm', 'admin']}>
                                     <SprintBoard />
                                 </ProtectedRoute>
                             }
                         />
+
+                        {/* ── Work Items (HU-09) — exclusivo PM / admin ──── */}
+                        <Route
+                            path="/projects/:id/work-items"
+                            element={
+                                <ProtectedRoute roles={['pm', 'admin']}>
+                                    <WorkItemsPage />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* ── Nuevo proyecto ────────────────────────────── */}
                         <Route
                             path="/projects/new"
                             element={
-                                <ProtectedRoute roles={['pm','admin']}>
+                                <ProtectedRoute roles={['pm', 'admin']}>
                                     <CreateProjectPage />
                                 </ProtectedRoute>
                             }
                         />
+
+                        {/* ── Usuarios ──────────────────────────────────── */}
                         <Route
                             path="/users"
                             element={
-                                <ProtectedRoute roles={['pm','admin']}>
+                                <ProtectedRoute roles={['pm', 'admin']}>
                                     <UsersPage />
                                 </ProtectedRoute>
                             }
                         />
+
                         <Route path="/audit"       element={<AuditPage />} />
                         <Route path="/leaderboard" element={<LeaderboardPage />} />
                     </Route>
 
                     {/* Catch-all */}
                     <Route path="*" element={<Navigate to="/projects" replace />} />
-                    
                 </Routes>
             </AuthProvider>
         </BrowserRouter>
