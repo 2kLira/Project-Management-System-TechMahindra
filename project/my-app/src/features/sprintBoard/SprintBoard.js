@@ -1,57 +1,66 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import "./SprintBoard.css";
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import api from '../../config/api';
 import { useAuthContext } from '../../shared/context/AuthContext';
 
-// ─── MOCK DATA (hasta que el API de work items esté listo) ─────────────────────
-const INITIAL_COLUMNS = {
-    todo: {
-        id: 'todo', label: 'TO DO', color: 'neutral',
-        cards: [
-            { id: 'US-14', type: 'User Story', title: 'Implement OTP login flow for mobile',      assignee: 'LC', sp: 8,  due: 'Mar 15', tag: null },
-            { id: 'T-31',  type: 'Task',       title: 'Write unit tests for payment gateway',     assignee: 'BK', sp: 5,  due: 'Mar 18', tag: null },
-            { id: 'B-07',  type: 'Bug',        title: 'Session timeout not clearing cookies',     assignee: 'AD', sp: 3,  due: 'Mar 12', tag: 'critical' },
-            { id: 'US-15', type: 'User Story', title: 'User profile edit with document upload',   assignee: 'JR', sp: 13, due: 'Mar 20', tag: null },
-        ],
-    },
-    inprogress: {
-        id: 'inprogress', label: 'IN PROGRESS', color: 'blue',
-        cards: [
-            { id: 'US-12', type: 'User Story', title: 'Dashboard analytics with real-time charts', assignee: 'LC', sp: 21, due: 'Mar 17', tag: 'blocker', blockerMsg: 'Blocker: API rate limits exceeded' },
-            { id: 'T-25',  type: 'Task',       title: 'Database index optimization for reports',   assignee: 'BK', sp: 5,  due: 'Mar 14', tag: null },
-            { id: 'B-06',  type: 'Bug',        title: 'PDF export formatting breaks on Safari',    assignee: 'AD', sp: 3,  due: 'Mar 13', tag: null },
-        ],
-    },
-    done: {
-        id: 'done', label: 'DONE', color: 'green',
-        cards: [
-            { id: 'T-27',  type: 'Task',       title: 'Set up Sprint 4 environment',               assignee: 'JR', sp: null, closed: 'Closed Mar 3', bonus: false },
-            { id: 'US-11', type: 'User Story', title: 'Password reset with email verification',    assignee: 'LC', sp: null, closed: 'Closed Mar 5', bonus: true  },
-        ],
-    },
-};
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const TYPE_LABEL = { user_story: 'User Story', task: 'Task', bug: 'Bug' };
 
-const AVATAR_COLORS = { LC: '#5e3ea1', BK: '#1d5fa8', AD: '#b05c00', JR: '#d4382a' };
+const fmtDate = (d) => (d ? String(d).slice(0, 10) : '—');
+
+/**
+ * Convierte el array de work_items que devuelve el API
+ * a la estructura de columnas que usa el Kanban.
+ */
+function mapWorkItemsToColumns(items = []) {
+    const cols = {
+        todo:       { id: 'todo',       label: 'TO DO',       color: 'neutral', cards: [] },
+        inprogress: { id: 'inprogress', label: 'IN PROGRESS', color: 'blue',    cards: [] },
+        done:       { id: 'done',       label: 'DONE',        color: 'green',   cards: [] },
+    };
+
+    for (const wi of items) {
+        // 'in_progress' → 'inprogress' (nombre de columna)
+        const colKey = wi.status === 'in_progress' ? 'inprogress' : wi.status;
+        if (!cols[colKey]) continue;
+
+        cols[colKey].cards.push({
+            id:       String(wi.id_work_item),
+            type:     TYPE_LABEL[wi.type] || wi.type,
+            title:    wi.title,
+            assignee: wi.assignee_id ? String(wi.assignee_id) : '?',
+            sp:       wi.story_points ?? 0,
+            due:      fmtDate(wi.end_date),
+            closed:   `Closed ${fmtDate(wi.updated_at || wi.end_date)}`,
+            tag:      null,
+        });
+    }
+    return cols;
+}
+
+const EMPTY_COLUMNS = mapWorkItemsToColumns([]);
+
+// ─── ICONS ────────────────────────────────────────────────────────────────────
+const IconPlus   = () => <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>;
+const IconClock  = () => <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>;
+const IconCheck  = () => <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>;
+const IconWarn   = () => <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
+const IconAlert  = () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm0 3.5L19.5 20h-15L12 5.5zM11 10v5h2v-5h-2zm0 7v2h2v-2h-2z" /></svg>;
+
+// ─── SUB-COMPONENTS ──────────────────────────────────────────────────────────
+const Avatar = ({ id }) => {
+    const label = String(id).slice(0, 2).toUpperCase();
+    const colors = ['#5e3ea1', '#1d5fa8', '#b05c00', '#d4382a', '#2a7d4f', '#8b4513'];
+    const bg = colors[Number(id) % colors.length] || '#888';
+    return <div className="avatar" style={{ background: bg }}>{label}</div>;
+};
 
 const BADGE_CLASS = {
     'User Story': 'badge--user-story',
     'Task':       'badge--task',
     'Bug':        'badge--bug',
 };
-
-// ─── ICONS ────────────────────────────────────────────────────────────────────
-const IconSearch = () => <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>;
-const IconFilter = () => <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M11 18h2" /></svg>;
-const IconClock = () => <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>;
-const IconCheck = () => <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>;
-const IconWarn = () => <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
-const IconAlert = () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm0 3.5L19.5 20h-15L12 5.5zM11 10v5h2v-5h-2zm0 7v2h2v-2h-2z" /></svg>;
-
-// ─── SUB-COMPONENTS ─────────────────────────────────────────────────────────────
-const Avatar = ({ id }) => (
-    <div className="avatar" style={{ background: AVATAR_COLORS[id] || '#888' }}>{id}</div>
-);
 
 const Badge = ({ type }) => (
     <span className={`badge ${BADGE_CLASS[type] || 'badge--task'}`}>{type}</span>
@@ -101,6 +110,11 @@ const Column = ({ col }) => {
                 <span className="column__count">{col.cards.length}</span>
             </div>
             <div className="column__body">
+                {col.cards.length === 0 && (
+                    <p style={{ color: '#bbb', fontSize: 13, textAlign: 'center', marginTop: 24 }}>
+                        No items
+                    </p>
+                )}
                 {col.cards.map(card => (
                     <Card key={card.id} card={card} done={isDone} />
                 ))}
@@ -109,7 +123,7 @@ const Column = ({ col }) => {
     );
 };
 
-// ─── FORM ────────────────────────────────────────────────────────────────────────
+// ─── FORM ─────────────────────────────────────────────────────────────────────
 const FormField = ({ label, required, children }) => (
     <div className="form-group">
         <label className="form-label">{label}{required && <span> *</span>}</label>
@@ -117,20 +131,23 @@ const FormField = ({ label, required, children }) => (
     </div>
 );
 
-const AddWorkItemForm = () => {
-
-  const { id_sprint } = useParams();
+/**
+ * Props requeridos: sprint, user, onCancel, onAdded
+ */
+const AddWorkItemForm = ({ sprint, user, onCancel, onAdded }) => {
+    const { id_sprint } = useParams();
 
     const [form, setForm] = useState({
         type: '', assignee: '', title: '', sp: 8, weight: 2,
-        start_date: '', target_date: '', description: '', created_by: '',
+        start_date: '', target_date: '', description: '',
+        created_by: user?.id_user ?? user?.id ?? '',
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError]           = useState('');
 
     useEffect(() => {
         const uid = user?.id_user ?? user?.id;
-        if (uid) set('created_by', uid);
+        if (uid) setForm(f => ({ ...f, created_by: uid }));
     }, [user]);
 
     const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
@@ -143,12 +160,12 @@ const AddWorkItemForm = () => {
         setError('');
         setSubmitting(true);
         try {
-            const res = await api.post(`/sprintBoard/${id_sprint}/createWorkItem`, form);
-            if (res.res?.ok || res.data?.data) {
+            const { res, data } = await api.post(`/sprintBoard/${id_sprint}/createWorkItem`, form);
+            if (res?.ok) {
                 onAdded?.();
                 onCancel();
             } else {
-                setError(res.data?.message || 'Error al crear el item.');
+                setError(data?.message || 'Error al crear el item.');
             }
         } catch {
             setError('Error de conexión.');
@@ -167,7 +184,6 @@ const AddWorkItemForm = () => {
             <div className="add-form__body">
                 {error && <div className="form-error">{error}</div>}
 
-                {/* Row 1: Type | Sprint | Assignee */}
                 <div className="form-row">
                     <FormField label="Type" required>
                         <select className="form-control" value={form.type} onChange={e => set('type', e.target.value)}>
@@ -199,7 +215,6 @@ const AddWorkItemForm = () => {
                     </FormField>
                 </div>
 
-                {/* Row 2: Title (full width) */}
                 <FormField label="Title" required>
                     <input
                         className="form-control"
@@ -210,7 +225,6 @@ const AddWorkItemForm = () => {
                     />
                 </FormField>
 
-                {/* Row 3: SP | Gamification Weight | Target Date */}
                 <div className="form-row">
                     <FormField label="Story Points (≥0)" required>
                         <input className="form-control" type="number" min={0} value={form.sp}
@@ -228,7 +242,6 @@ const AddWorkItemForm = () => {
                     </FormField>
                 </div>
 
-                {/* Description */}
                 <FormField label="Description">
                     <textarea
                         className="form-control"
@@ -247,39 +260,57 @@ const AddWorkItemForm = () => {
             </div>
         </div>
     );
-}
+};
 
-// ─── MAIN ────────────────────────────────────────────────────────────────────────
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function SprintBoard() {
-    const location    = useLocation();
-    const navigate    = useNavigate();
+    const location          = useLocation();
+    const navigate          = useNavigate();
     const { id, id_sprint } = useParams();
-    const { user }    = useAuthContext();
+    const { user }          = useAuthContext();
 
     const isPM = user?.role === 'pm' || user?.role === 'admin';
 
     const [sprint,      setSprint]      = useState(location.state?.sprint || null);
     const [projectName, setProjectName] = useState(location.state?.projectName || null);
-    const [columns,     setColumns]     = useState(INITIAL_COLUMNS);
+    const [columns,     setColumns]     = useState(EMPTY_COLUMNS);
     const [showForm,    setShowForm]    = useState(false);
     const [search,      setSearch]      = useState('');
+    const [loading,     setLoading]     = useState(true);
 
-    // Carga sprint si no viene en state
+    // ── Carga sprint desde API si no vino por navigation state ───────────────
     useEffect(() => {
-        async function load() {
+        if (sprint) return;
+        async function fetchSprint() {
             try {
-                const res = await api.get(`/sprintBoard/${id_sprint}/getSprintInfo`);
-                if (res.data?.data) setSprint(res.data.data);
-            } catch {}
-            try {
-                await api.get(`/sprintBoard/${id_sprint}/getWorkItems`);
-                // TODO: mapear respuesta a columnas cuando el API esté listo
+                const { res, data } = await api.get(`/sprintBoard/${id_sprint}/getSprintInfo`);
+                if (res?.ok && data?.data) setSprint(data.data);
             } catch {}
         }
-        if (!sprint) load();
+        fetchSprint();
     }, [id_sprint, sprint]);
 
-    // Carga nombre del proyecto si no viene en state
+    // ── Carga work items siempre que cambia el sprint ─────────────────────────
+    const fetchWorkItems = useCallback(async () => {
+        setLoading(true);
+        try {
+            const { res, data } = await api.get(`/sprintBoard/${id_sprint}/getWorkItems`);
+            // Backend devuelve { message, data: supabaseResponse }
+            // supabaseResponse = { data: [...workItems], error }
+            const items = data?.data?.data ?? [];
+            setColumns(mapWorkItemsToColumns(items));
+        } catch {
+            setColumns(EMPTY_COLUMNS);
+        } finally {
+            setLoading(false);
+        }
+    }, [id_sprint]);
+
+    useEffect(() => {
+        fetchWorkItems();
+    }, [fetchWorkItems]);
+
+    // ── Carga nombre del proyecto si no vino por state ───────────────────────
     useEffect(() => {
         if (projectName) return;
         async function fetchProject() {
@@ -291,98 +322,43 @@ export default function SprintBoard() {
         fetchProject();
     }, [id, projectName]);
 
-  const location = useLocation();
-  const { id_sprint } = useParams();
-  const [sprint, setSprint] = useState(location.state?.sprint);
-  const [columns, setColumns] = useState(INITIAL_COLUMNS);
+    // ── Métricas ─────────────────────────────────────────────────────────────
+    const spEstimated = sprint?.SP_estimated ?? 0;
+    const spCompleted = columns.done.cards.reduce((acc, c) => acc + (c.sp || 0), 0);
+    const pct         = spEstimated > 0 ? Math.min(100, Math.round((spCompleted / spEstimated) * 100)) : 0;
 
-    const spEstimated   = sprint?.SP_estimated ?? 55;
-    const spCompleted   = 8; // TODO: calculado desde work items
-    const pct           = Math.min(100, Math.round((spCompleted / Math.max(spEstimated, 1)) * 100));
+    const projectLabel = projectName || `Project ${id}`;
+    const sprintLabel  = sprint?.name || `Sprint ${id_sprint}`;
+    const sprintNum    = sprint?.name?.replace(/[^0-9]/g, '') || id_sprint;
 
-    if (!sprint) {
+    // ── Filtro por búsqueda ───────────────────────────────────────────────────
+    const filteredColumns = search.trim()
+        ? Object.fromEntries(
+            Object.entries(columns).map(([key, col]) => [
+                key,
+                {
+                    ...col,
+                    cards: col.cards.filter(c =>
+                        c.title.toLowerCase().includes(search.toLowerCase()) ||
+                        c.type.toLowerCase().includes(search.toLowerCase())
+                    ),
+                },
+            ])
+          )
+        : columns;
+
+    if (!sprint && loading) {
         return (
             <div className="sprint-board" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
                 <p style={{ color: '#9e9b92', fontSize: 14 }}>Cargando sprint…</p>
             </div>
         );
     }
-  }, [id_sprint, sprint])
-
-  if (!sprint) return <p>Cargando...</p>;
-
-  const handleAdd = (form) => {
-    if (!form.type || !form.title || !form.assignee) return;
-    const newCard = {
-      id: `NEW-${Date.now()}`,
-      type: form.type,
-      title: form.title,
-      assignee: form.assignee,
-      sp: Number(form.sp),
-      due: form.date || "TBD",
-      tag: null,
-    };
-    setColumns(prev => ({
-      ...prev,
-      todo: { ...prev.todo, cards: [...prev.todo.cards, newCard] },
-    }));
-  };
-
-  return (
-    <div className="sprint-board">
-
-      <nav className="breadcrumb">
-        <span>Alpha Banking Portal</span>
-        <span>›</span>
-        <span>Backlog</span>
-      </nav>
-
-      <div className="page-header">
-        <h1 className="page-header__title">Sprint backlog</h1>
-        <div className="page-header__actions">
-          <button className="btn-icon"><IconSearch /></button>
-          <button className="btn-icon"><IconFilter /></button>
-        </div>
-      </div>
-
-      <div className="sprint-meta">
-        <div className="meta-item">
-          <span className="meta-item__label">Sprint</span>
-          <span className="meta-item__value">{sprint.name}</span>
-        </div>
-        <div className="meta-sep" />
-        <div className="meta-item">
-          <span className="meta-item__label">Dates</span>
-          <span className="meta-item__value">{sprint.begin_at ? sprint.begin_at.slice(0, 10) : '—'} to {sprint.deadline ? sprint.deadline.slice(0, 10) : '—'} </span>
-        </div>
-        <div className="meta-sep" />
-        <div className="meta-item">
-          <span className="meta-item__label">Planned SP</span>
-          <span className="meta-item__value">{sprint.SP_estimated}</span>
-        </div>
-        <div className="meta-sep" />
-        <div className="meta-item">
-          <span className="meta-item__label">Completed SP</span>
-          <span className="meta-item__value meta-item__value--accent">8 / {sprint.SP_estimated}</span>
-        </div>
-        <div className="meta-progress">
-          <div className="progress-bar">
-            <div className="progress-bar__fill" />
-          </div>
-          <span className="progress-label">15%</span>
-        </div>
-      </div>
-
-      <div className="board">
-        {Object.values(columns).map(col => (
-          <Column key={col?.id} col={col} />
-        ))}
-      </div>
 
     return (
         <div className="sprint-board">
 
-            {/* ── Breadcrumb ─────────────────────────────────────────────── */}
+            {/* ── Breadcrumb ──────────────────────────────────────────────── */}
             <nav className="breadcrumb">
                 <span
                     className="breadcrumb__link"
@@ -399,7 +375,7 @@ export default function SprintBoard() {
                 </span>
             </nav>
 
-            {/* ── Page Header ────────────────────────────────────────────── */}
+            {/* ── Page Header ─────────────────────────────────────────────── */}
             <div className="page-header">
                 <h1 className="page-header__title">
                     Sprint {sprintNum} Board — {projectLabel}
@@ -411,7 +387,6 @@ export default function SprintBoard() {
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
-                    <input className="header-search" placeholder="Filter…" readOnly />
                     {isPM && (
                         <button className="btn-add" onClick={() => setShowForm(v => !v)}>
                             <IconPlus />
@@ -431,7 +406,7 @@ export default function SprintBoard() {
                 <div className="meta-item">
                     <span className="meta-item__label">Dates</span>
                     <span className="meta-item__value">
-                        {fmtDate(sprint.begin_at)} — {fmtDate(sprint.deadline)}
+                        {fmtDate(sprint?.begin_at)} — {fmtDate(sprint?.deadline)}
                     </span>
                 </div>
                 <div className="meta-sep" />
@@ -455,19 +430,27 @@ export default function SprintBoard() {
             </div>
 
             {/* ── Kanban Board ─────────────────────────────────────────────── */}
-            <div className="board">
-                {Object.values(columns).map(col => (
-                    <Column key={col.id} col={col} />
-                ))}
-            </div>
+            {loading ? (
+                <p style={{ color: '#9e9b92', fontSize: 13, textAlign: 'center', marginTop: 32 }}>
+                    Cargando work items…
+                </p>
+            ) : (
+                <div className="board">
+                    {Object.values(filteredColumns).map(col => (
+                        <Column key={col.id} col={col} />
+                    ))}
+                </div>
+            )}
 
-            {/* ── Add Work Item Form (toggle) ───────────────────────────── */}
+            {/* ── Add Work Item Form ───────────────────────────────────────── */}
             {showForm && (
                 <AddWorkItemForm
                     sprint={sprint}
+                    user={user}
                     onCancel={() => setShowForm(false)}
                     onAdded={() => {
-                        // TODO: refrescar columnas desde API
+                        setShowForm(false);
+                        fetchWorkItems();
                     }}
                 />
             )}
