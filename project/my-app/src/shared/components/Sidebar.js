@@ -4,24 +4,40 @@ import { ICONS, NAV_ITEMS, VIEWER_NAV_ITEMS } from './Sidebar.constants';
 import SidebarViewerProjectSection from './SidebarViewerProjectSection';
 import './Sidebar.css';
 
+/** Extrae las iniciales de un username */
+function getInitials(username = '') {
+    return username
+        .split(/[\s_-]+/)
+        .slice(0, 2)
+        .map(w => w[0] ?? '')
+        .join('')
+        .toUpperCase() || '?';
+}
+
 export default function Sidebar({ onLogout }) {
     const { user } = useAuthContext();
-    const location = useLocation();
-    const params = useParams();
-    const isViewer = user?.role === 'viewer';
-    const isViewerProjectWorkspace = isViewer && /^\/projects\/\d+\/(view|backlog|sprints)$/.test(location.pathname);
-    const projectId = params?.id;
-    const projectNameFromState = location.state?.projectName;
-    const projectSectionTitle = (projectNameFromState || `Proyecto ${projectId || ''}`).toUpperCase();
+    const location  = useLocation();
+    const params    = useParams();
 
+    const isViewer = user?.role === 'viewer';
+    const isViewerProjectWorkspace =
+        isViewer && /^\/projects\/\d+\/(view|backlog|sprints)$/.test(location.pathname);
+
+    const projectId            = params?.id;
+    const projectNameFromState = location.state?.projectName;
+    const projectSectionTitle  = (
+        projectNameFromState || `Proyecto ${projectId || ''}`
+    ).toUpperCase();
+
+    /* Filtrado de items por rol */
     const visible = (isViewer ? VIEWER_NAV_ITEMS : NAV_ITEMS).filter(item =>
         !item.roles || (user && item.roles.includes(user.role))
     );
 
-    const general = visible.filter(i => i.section === 'general');
+    const general      = visible.filter(i => i.section === 'general');
     const intelligence = visible.filter(i => i.section === 'inteligencia');
-    const myWork = visible.filter(i => i.section === 'my_work');
-    const recognition = visible.filter(i => i.section === 'recognition');
+    const myWork       = visible.filter(i => i.section === 'my_work');
+    const recognition  = visible.filter(i => i.section === 'recognition');
 
     const navClass = ({ isActive }) =>
         'sb-nav-item' + (isActive ? ' sb-nav-item-active' : '');
@@ -31,20 +47,26 @@ export default function Sidebar({ onLogout }) {
 
     return (
         <aside className="sb-sidebar">
+
+            {/* ── Logo ── */}
             <div className="sb-logo-wrap">
                 <div className="sb-logo-box">
                     <div className="sb-logo-icon">T</div>
                     <div>
-                        <div className="sb-logo-text">{isViewer ? 'Viewer Dashboard' : 'TECH'}</div>
+                        <div className="sb-logo-text">
+                            {isViewer ? 'Viewer' : 'TECH'}
+                        </div>
                         <div className="sb-logo-sub">Mahindra PM</div>
                     </div>
                 </div>
             </div>
 
+            {/* ── Navegación ── */}
             {isViewer ? (
                 <>
                     <div className="sb-section">
                         <div className="sb-section-label">My Work</div>
+
                         {isViewerProjectWorkspace ? (
                             <>
                                 <NavLink to="/home" className={navClass}>
@@ -109,17 +131,26 @@ export default function Sidebar({ onLogout }) {
                 </>
             )}
 
+            {/* ── Footer: usuario + logout ── */}
             <div className="sb-logout-wrap">
                 <div className="sb-user-info">
-                    <span className="sb-user-name">{user?.username}</span>
-                    <span className="sb-user-role">{user?.role}</span>
+                    <div className="sb-user-avatar">
+                        {getInitials(user?.username)}
+                    </div>
+                    <div className="sb-user-meta">
+                        <span className="sb-user-name">{user?.username}</span>
+                        <span className="sb-user-role">{user?.role}</span>
+                    </div>
                 </div>
+
                 {onLogout && (
                     <button className="sb-logout-btn" onClick={onLogout}>
+                        <span className="sb-logout-btn-icon">⎋</span>
                         Cerrar sesión
                     </button>
                 )}
             </div>
+
         </aside>
     );
 }
