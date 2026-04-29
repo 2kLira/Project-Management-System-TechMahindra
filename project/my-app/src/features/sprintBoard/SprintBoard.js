@@ -7,7 +7,22 @@ import { useAuthContext } from '../../shared/context/AuthContext';
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 const TYPE_LABEL = { user_story: 'User Story', task: 'Task', bug: 'Bug' };
 
+const COL_TO_STATUS = { todo: 'todo', inprogress: 'in_progress', done: 'done' };
+
 const fmtDate = (d) => (d ? String(d).slice(0, 10) : '—');
+
+// Determina si el usuario puede mover una tarjeta del Kanban.
+// - admin / pm: cualquier tarjeta del proyecto (backend valida ownership del PM)
+// - viewer: solo si la tarjeta está asignada a él
+function canMoveCard(user, card) {
+    const role = user?.role;
+    if (role === 'admin' || role === 'pm') return true;
+    if (role === 'viewer') {
+        const uid = user?.id_user ?? user?.id;
+        return uid != null && String(card.assignee) === String(uid);
+    }
+    return false;
+}
 
 /**
  * Convierte el array de work_items que devuelve el API
@@ -66,8 +81,13 @@ const Badge = ({ type }) => (
     <span className={`badge ${BADGE_CLASS[type] || 'badge--task'}`}>{type}</span>
 );
 
-const Card = ({ card, done = false }) => (
-    <div className={`card${done ? ' card--done' : ''}`}>
+const Card = ({ card, done = false, draggable = false, onDragStart }) => (
+    <div
+        className={`card${done ? ' card--done' : ''}`}
+        draggable={draggable}
+        onDragStart={draggable ? onDragStart : undefined}
+        style={draggable ? { cursor: 'grab' } : { cursor: 'default' }}
+    >
         <div className="card__top">
             <Badge type={card.type} />
             <span className="card__id">#{card.id}</span>
@@ -101,10 +121,34 @@ const Card = ({ card, done = false }) => (
     </div>
 );
 
-const Column = ({ col }) => {
+const Column = ({ col, user, onMoveCard }) => {
     const isDone = col.id === 'done';
+    const [isOver, setIsOver] = useState(false);
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (!isOver) setIsOver(true);
+    };
+    const handleDragLeave = () => setIsOver(false);
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsOver(false);
+        const itemId  = e.dataTransfer.getData('text/plain');
+        const fromCol = e.dataTransfer.getData('source-col');
+        if (itemId && fromCol && fromCol !== col.id) {
+            onMoveCard?.(itemId, fromCol, col.id);
+        }
+    };
+
     return (
-        <div className={`column column--${col.color}`}>
+        <div
+            className={`column column--${col.color}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            style={isOver ? { outline: '2px dashed #CC0000', outlineOffset: -4 } : undefined}
+        >
             <div className="column__header">
                 <span>{col.label}</span>
                 <span className="column__count">{col.cards.length}</span>
@@ -115,9 +159,22 @@ const Column = ({ col }) => {
                         No items
                     </p>
                 )}
-                {col.cards.map(card => (
-                    <Card key={card.id} card={card} done={isDone} />
-                ))}
+                {col.cards.map(card => {
+                    const draggable = canMoveCard(user, card);
+                    return (
+                        <Card
+                            key={card.id}
+                            card={card}
+                            done={isDone}
+                            draggable={draggable}
+                            onDragStart={(e) => {
+                                e.dataTransfer.effectAllowed = 'move';
+                                e.dataTransfer.setData('text/plain', card.id);
+                                e.dataTransfer.setData('source-col', col.id);
+                            }}
+                        />
+                    );
+                })}
             </div>
         </div>
     );
@@ -338,6 +395,39 @@ export default function SprintBoard() {
         fetchWorkItems();
     }, [fetchWorkItems]);
 
+    // ── Drag & drop: mover work item entre columnas ──────────────────────────
+    const handleMoveCard = useCallback(async (itemId, fromCol, toCol) => {
+        const newStatus = COL_TO_STATUS[toCol];
+        if (!newStatus) return;
+
+        // Snapshot para revertir si el backend rechaza el cambio
+        let snapshot;
+        setColumns(prev => {
+            snapshot = prev;
+            const idx = prev[fromCol]?.cards.findIndex(c => c.id === itemId);
+            if (idx == null || idx === -1) return prev;
+            const moved = prev[fromCol].cards[idx];
+            return {
+                ...prev,
+                [fromCol]: { ...prev[fromCol], cards: prev[fromCol].cards.filter((_, i) => i !== idx) },
+                [toCol]:   { ...prev[toCol],   cards: [...prev[toCol].cards, moved] },
+            };
+        });
+
+        try {
+            const { res, data } = await api.patch(`/work-items/${itemId}/status`, { status: newStatus });
+            if (!res?.ok) {
+                console.error('[move] backend rechazó el cambio:', res?.status, data);
+                if (snapshot) setColumns(snapshot);
+                fetchWorkItems();
+            }
+        } catch (err) {
+            console.error('[move] error de conexión:', err);
+            if (snapshot) setColumns(snapshot);
+            fetchWorkItems();
+        }
+    }, [fetchWorkItems]);
+
     // ── Carga nombre del proyecto si no vino por state ───────────────────────
     useEffect(() => {
         if (projectName) return;
@@ -465,7 +555,7 @@ export default function SprintBoard() {
             ) : (
                 <div className="board">
                     {Object.values(filteredColumns).map(col => (
-                        <Column key={col.id} col={col} />
+                        <Column key={col.id} col={col} user={user} onMoveCard={handleMoveCard} />
                     ))}
                 </div>
             )}
