@@ -43,6 +43,12 @@ function severityMeta(severity) {
     return { label: 'Bajo', color: '#2E7D32', bg: '#E7F6EA' };
 }
 
+function approvalStatusLabel(status) {
+    if (status === 'approved') return 'Aprobado por PM';
+    if (status === 'rejected') return 'Rechazado por PM';
+    return 'Pendiente de aprobación';
+}
+
 function normalizeStatus(status) {
     if (status === 'In Progress' || status === 'in_progress') return 'in_progress';
     if (status === 'Done' || status === 'done') return 'done';
@@ -50,9 +56,9 @@ function normalizeStatus(status) {
 }
 
 function statusLabel(status) {
-    if (status === 'done') return 'Done';
-    if (status === 'in_progress') return 'In Progress';
-    return 'To Do';
+    if (status === 'done') return 'Finalizado';
+    if (status === 'in_progress') return 'En curso';
+    return 'Por hacer';
 }
 
 export default function ViewerWorkItemDetailPage() {
@@ -60,14 +66,14 @@ export default function ViewerWorkItemDetailPage() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuthContext();
-    const projectName = location.state?.projectName || `Project ${id}`;
+    const projectName = location.state?.projectName || `Proyecto ${id}`;
 
     // Item real pasado desde ViewerProjectBacklogPage via location.state
     const workItem = adaptItem(location.state?.item, id);
     const isMyItem = workItem?.assigneeId === user?.id;
     const [currentStatus, setCurrentStatus] = useState(normalizeStatus(workItem?.status));
     const [blockers, setBlockers] = useState([]);
-    const [loadingBlockers, setLoadingBlockers] = useState(true);
+    const projectName = location.state?.projectName || `Proyecto ${id}`;
     const [form, setForm] = useState({
         kind: 'blocker',
         description: '',
@@ -79,12 +85,12 @@ export default function ViewerWorkItemDetailPage() {
     const [timeline, setTimeline] = useState([
         {
             id: 'created',
-            title: 'Work item created',
-            detail: 'Added to Sprint 4 backlog for the viewer project.',
-            time: 'Today · 08:10',
+            title: 'Work item creado',
+            detail: 'Agregado al backlog del Sprint 4 para el proyecto viewer.',
+            time: 'Hoy · 08:10',
         },
     ]);
-
+            title: 'Ítem de trabajo creado',
     // Cargar bloqueadores desde API
     useEffect(() => {
         if (!workItem?.id) {
@@ -115,9 +121,9 @@ export default function ViewerWorkItemDetailPage() {
         setTimeline([
             {
                 id: 'created',
-                title: 'Work item created',
-                detail: 'Added to Sprint 4 backlog for the viewer project.',
-                time: 'Today · 08:10',
+                title: 'Ítem de trabajo creado',
+                detail: 'Agregado al backlog del Sprint 4 para el proyecto viewer.',
+                time: 'Hoy · 08:10',
             },
         ]);
     }, [workItem]);
@@ -126,9 +132,9 @@ export default function ViewerWorkItemDetailPage() {
         return (
             <div className="vwid-page">
                 <div className="vwid-empty-shell">
-                    <h1 className="vwid-title">Work item not found</h1>
+                    <h1 className="vwid-title">Ítem no encontrado</h1>
                     <button className="vwid-secondary-btn" onClick={() => navigate(`/projects/${id}/backlog`, { state: { projectName } })}>
-                        Back to Backlog
+                        Volver al backlog
                     </button>
                 </div>
             </div>
@@ -138,12 +144,18 @@ export default function ViewerWorkItemDetailPage() {
     const type = getTypeBadgeColors(workItem.type);
     const status = getStatusBadgeColors(statusLabel(currentStatus));
 
+    const typeLabelMap = {
+        user_story: 'Historia',
+        task: 'Tarea',
+        bug: 'Bug',
+    };
+
     function handleSubmit(event) {
         event.preventDefault();
 
         const nextErrors = {};
-        if (!form.description.trim()) nextErrors.description = 'Description is required.';
-        if (!form.impact.trim()) nextErrors.impact = 'Impact is required.';
+        if (!form.description.trim()) nextErrors.description = 'La descripción es obligatoria.';
+        if (!form.impact.trim()) nextErrors.impact = 'El impacto es obligatorio.';
 
         if (Object.keys(nextErrors).length > 0) {
             setErrors(nextErrors);
@@ -173,9 +185,9 @@ export default function ViewerWorkItemDetailPage() {
                 setTimeline((current) => [
                     {
                         id: `timeline-${Date.now()}`,
-                        title: `${form.kind === 'implication' ? 'Implication' : 'Blocker'} registered`,
-                        detail: `${form.description.trim()} · ${severityMeta(form.severity).label} (Pending approval)`,
-                        time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                        title: `${form.kind === 'implication' ? 'Implicación' : 'Bloqueador'} registrado`,
+                        detail: `${form.description.trim()} · ${severityMeta(form.severity).label} (${approvalStatusLabel('pending')})`,
+                        time: new Date().toLocaleString('es-ES', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
                     },
                     ...current,
                 ]);
@@ -184,11 +196,11 @@ export default function ViewerWorkItemDetailPage() {
                 setForm({ kind: 'blocker', description: '', impact: '', severity: 'medium' });
                 setErrors({});
             } else {
-                setErrors({ submit: data.message || 'Error creating blocker' });
+                setErrors({ submit: data.message || 'Error creando el bloqueador' });
             }
         } catch (error) {
             setErrors({ submit: 'Error de conexión' });
-            console.error('Error submitting blocker:', error);
+            console.error('Error enviando bloqueador:', error);
         } finally {
             setSubmitting(false);
         }
@@ -202,24 +214,24 @@ export default function ViewerWorkItemDetailPage() {
                     <span>/</span>
                     <span className="vwid-crumb-accent">{workItem.sprintLabel}</span>
                     <span>/</span>
-                    <span>Work Item Detail</span>
+                    <span>Detalle del ítem</span>
                 </div>
                 <button className="vwid-secondary-btn" onClick={() => navigate(`/projects/${id}/backlog`, { state: { projectName } })}>
-                    ← Back to Backlog
+                    ← Volver al backlog
                 </button>
             </div>
 
             <div className="vwid-content-wrap">
                 <div className="vwid-header-card">
                     <div className="vwid-header-left">
-                        <span className="vwid-kicker">{workItem.type}</span>
+                        <span className="vwid-kicker">{typeLabelMap[workItem.type] || workItem.type}</span>
                         <h1 className="vwid-title">{workItem.title}</h1>
                         <p className="vwid-description">{workItem.description}</p>
                     </div>
 
                     <div className="vwid-header-meta">
-                        <div className="vwid-meta-chip" style={{ color: type.color, backgroundColor: type.bg }}>{workItem.type}</div>
-                        <div className="vwid-meta-chip" style={{ color: status.color, backgroundColor: status.bg }}>{currentStatus.replace('_', ' ')}</div>
+                        <div className="vwid-meta-chip" style={{ color: type.color, backgroundColor: type.bg }}>{typeLabelMap[workItem.type] || workItem.type}</div>
+                        <div className="vwid-meta-chip" style={{ color: status.color, backgroundColor: status.bg }}>{statusLabel(currentStatus)}</div>
                     </div>
                 </div>
 
@@ -228,8 +240,8 @@ export default function ViewerWorkItemDetailPage() {
                         <div className="vwid-card">
                             <div className="vwid-card-head">
                                 <div>
-                                    <div className="vwid-card-label">Status</div>
-                                    <div className="vwid-card-note">Visual controls only, no backend persistence yet.</div>
+                                    <div className="vwid-card-label">Estado</div>
+                                    <div className="vwid-card-note">Controles visuales solamente, aún sin persistencia en backend.</div>
                                 </div>
                                 <div className="vwid-pill-row">
                                     {['todo', 'in_progress', 'done'].map((value) => (
@@ -241,9 +253,9 @@ export default function ViewerWorkItemDetailPage() {
                                                 setTimeline((current) => [
                                                     {
                                                         id: `status-${Date.now()}`,
-                                                        title: 'Status changed locally',
-                                                        detail: `Now set to ${statusLabel(value)}`,
-                                                        time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                                                        title: 'Estado cambiado localmente',
+                                                        detail: `Ahora está en ${statusLabel(value)}`,
+                                                        time: new Date().toLocaleString('es-ES', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
                                                     },
                                                     ...current,
                                                 ]);
@@ -257,23 +269,23 @@ export default function ViewerWorkItemDetailPage() {
 
                             <div className="vwid-info-grid">
                                 <div>
-                                    <span className="vwid-info-label">Assignee</span>
+                                    <span className="vwid-info-label">Responsable</span>
                                     <div className="vwid-assignee-wrap">
                                         <span className="vwid-avatar">{initialsFromName(workItem.assignee).toUpperCase()}</span>
                                         <span>{workItem.assignee}</span>
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="vwid-info-label">Story Points</span>
+                                    <span className="vwid-info-label">Puntos de historia</span>
                                     <div className="vwid-info-value">{workItem.storyPoints} SP</div>
                                 </div>
                                 <div>
-                                    <span className="vwid-info-label">Target date</span>
+                                    <span className="vwid-info-label">Fecha objetivo</span>
                                     <div className="vwid-info-value vwid-warning">{workItem.targetDate}</div>
                                 </div>
                                 <div>
-                                    <span className="vwid-info-label">Project link</span>
-                                    <div className="vwid-info-value">Item #{workItem.id} · Project #{id}</div>
+                                    <span className="vwid-info-label">Vínculo al proyecto</span>
+                                    <div className="vwid-info-value">Ítem #{workItem.id} · Proyecto #{id}</div>
                                 </div>
                             </div>
                         </div>
@@ -282,10 +294,10 @@ export default function ViewerWorkItemDetailPage() {
                             <div className="vwid-card vwid-alert-card">
                                 <div className="vwid-card-head vwid-card-head-tight">
                                     <div>
-                                        <div className="vwid-card-label">Blockers & Implications</div>
+                                        <div className="vwid-card-label">Bloqueadores e implicaciones</div>
                                         <div className="vwid-card-note">Registrados y aprobados por el PM</div>
                                     </div>
-                                    <span className="vwid-scope-pill">{blockers.length} records</span>
+                                    <span className="vwid-scope-pill">{blockers.length} registros</span>
                                 </div>
 
                                 {loadingBlockers ? (
@@ -294,8 +306,7 @@ export default function ViewerWorkItemDetailPage() {
                                     <div style={{ marginBottom: 24 }}>
                                         {blockers.map((blocker) => {
                                             const blockerSeverity = severityMeta(blocker.severity);
-                                            const statusLabel = blocker.approval_status === 'pending' ? 'Pending approval' :
-                                                blocker.approval_status === 'approved' ? 'Approved by PM' : 'Rejected';
+                                            const approvalLabel = approvalStatusLabel(blocker.approval_status);
                                             const statusColor = blocker.approval_status === 'pending' ? '#8A5A00' :
                                                 blocker.approval_status === 'approved' ? '#2E7D32' : '#B71C1C';
                                             const statusBg = blocker.approval_status === 'pending' ? '#FFF3D9' :
@@ -304,14 +315,14 @@ export default function ViewerWorkItemDetailPage() {
                                             return (
                                                 <div key={blocker.id_blocker} className="vwid-active-blocker" data-severity={blocker.severity} style={{ marginBottom: 12 }}>
                                                     <div className="vwid-active-blocker-head">
-                                                        <span className="vwid-active-badge">{blocker.kind === 'implication' ? 'Implication' : 'Blocker'}</span>
-                                                        <span className="vwid-date">{new Date(blocker.created_at).toLocaleDateString()} · {new Date(blocker.created_at).toLocaleTimeString()}</span>
+                                                        <span className="vwid-active-badge">{blocker.kind === 'implication' ? 'Implicación' : 'Bloqueador'}</span>
+                                                        <span className="vwid-date">{new Date(blocker.created_at).toLocaleDateString('es-ES')} · {new Date(blocker.created_at).toLocaleTimeString('es-ES')}</span>
                                                     </div>
                                                     <div className="vwid-blocker-title">{blocker.description}</div>
                                                     <div className="vwid-blocker-impact">{blocker.impact}</div>
                                                     <div className="vwid-blocker-footer">
                                                         <span className="vwid-meta-chip" style={{ color: blockerSeverity.color, backgroundColor: blockerSeverity.bg }}>{blockerSeverity.label}</span>
-                                                        <span className="vwid-meta-chip" style={{ color: statusColor, backgroundColor: statusBg }}>{statusLabel}</span>
+                                                        <span className="vwid-meta-chip" style={{ color: statusColor, backgroundColor: statusBg }}>{approvalLabel}</span>
                                                         {blocker.approval_status === 'rejected' && blocker.rejected_reason && (
                                                             <span style={{ fontSize: 11, color: '#B71C1C' }}>Razón: {blocker.rejected_reason}</span>
                                                         )}
@@ -321,7 +332,7 @@ export default function ViewerWorkItemDetailPage() {
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="vwid-empty-state">No blockers registered. Use the form below to register one.</div>
+                                    <div className="vwid-empty-state">No hay bloqueadores registrados. Usa el formulario de abajo para registrar uno.</div>
                                 )}
 
                                 <form className="vwid-form" onSubmit={handleSubmit}>
@@ -340,18 +351,18 @@ export default function ViewerWorkItemDetailPage() {
                                     )}
                                     <div className="vwid-form-row">
                                         <div className="vwid-field">
-                                            <label>Type</label>
+                                            <label>Tipo</label>
                                             <select 
                                                 value={form.kind} 
                                                 onChange={(event) => setForm((current) => ({ ...current, kind: event.target.value }))}
                                                 disabled={submitting}
                                             >
-                                                <option value="blocker">Blocker</option>
-                                                <option value="implication">Implication</option>
+                                                <option value="blocker">Bloqueador</option>
+                                                <option value="implication">Implicación</option>
                                             </select>
                                         </div>
                                         <div className="vwid-field">
-                                            <label>Severity</label>
+                                            <label>Severidad</label>
                                             <select 
                                                 value={form.severity} 
                                                 onChange={(event) => setForm((current) => ({ ...current, severity: event.target.value }))}
@@ -365,7 +376,7 @@ export default function ViewerWorkItemDetailPage() {
                                     </div>
 
                                     <div className="vwid-field">
-                                        <label>Blocker description *</label>
+                                        <label>Descripción del bloqueador *</label>
                                         <textarea
                                             rows="3"
                                             value={form.description}
@@ -373,14 +384,14 @@ export default function ViewerWorkItemDetailPage() {
                                                 setForm((current) => ({ ...current, description: event.target.value }));
                                                 if (errors.description) setErrors((current) => ({ ...current, description: '' }));
                                             }}
-                                            placeholder="What is blocking progress? Be specific."
+                                            placeholder="¿Qué está bloqueando el avance? Sé específico."
                                             disabled={submitting}
                                         />
                                         {errors.description && <span className="vwid-error-text">{errors.description}</span>}
                                     </div>
 
                                     <div className="vwid-field">
-                                        <label>Implication / Impact *</label>
+                                        <label>Implicación / Impacto *</label>
                                         <textarea
                                             rows="3"
                                             value={form.impact}
@@ -388,7 +399,7 @@ export default function ViewerWorkItemDetailPage() {
                                                 setForm((current) => ({ ...current, impact: event.target.value }));
                                                 if (errors.impact) setErrors((current) => ({ ...current, impact: '' }));
                                             }}
-                                            placeholder="What will happen if this is not resolved?"
+                                            placeholder="¿Qué pasará si esto no se resuelve?"
                                             disabled={submitting}
                                         />
                                         {errors.impact && <span className="vwid-error-text">{errors.impact}</span>}
@@ -401,14 +412,14 @@ export default function ViewerWorkItemDetailPage() {
                                             onClick={() => setForm({ kind: 'blocker', description: '', impact: '', severity: 'medium' })}
                                             disabled={submitting}
                                         >
-                                            Cancel
+                                            Cancelar
                                         </button>
                                         <button 
                                             type="submit" 
                                             className="vwid-primary-btn"
                                             disabled={submitting}
                                         >
-                                            {submitting ? 'Registering...' : 'Register Blocker'}
+                                            {submitting ? 'Registrando...' : 'Registrar bloqueador'}
                                         </button>
                                     </div>
                                 </form>
@@ -419,35 +430,35 @@ export default function ViewerWorkItemDetailPage() {
 
                     <aside className="vwid-side-column">
                         <div className="vwid-summary-card">
-                            <div className="vwid-card-label">Details</div>
-                            <div className="vwid-summary-row"><span>Type</span><strong>{workItem.type}</strong></div>
-                            <div className="vwid-summary-row"><span>Status</span><strong>{statusLabel(currentStatus)}</strong></div>
-                            <div className="vwid-summary-row"><span>Story Points</span><strong>{workItem.storyPoints} SP</strong></div>
-                            <div className="vwid-summary-row"><span>Assignee</span><strong>{workItem.assignee}</strong></div>
+                            <div className="vwid-card-label">Detalles</div>
+                            <div className="vwid-summary-row"><span>Tipo</span><strong>{workItem.type}</strong></div>
+                            <div className="vwid-summary-row"><span>Estado</span><strong>{statusLabel(currentStatus)}</strong></div>
+                            <div className="vwid-summary-row"><span>Puntos de historia</span><strong>{workItem.storyPoints} SP</strong></div>
+                            <div className="vwid-summary-row"><span>Responsable</span><strong>{workItem.assignee}</strong></div>
                             <div className="vwid-summary-row"><span>Sprint</span><strong>{workItem.sprintLabel}</strong></div>
-                            <div className="vwid-summary-row"><span>Target</span><strong>{workItem.targetDate}</strong></div>
+                            <div className="vwid-summary-row"><span>Objetivo</span><strong>{workItem.targetDate}</strong></div>
                         </div>
 
                         {isMyItem && (
                             <>
                                 <div className={`vwid-risk-card ${blockers.some(b => b.severity === 'critical' && b.approval_status === 'approved') ? 'is-critical' : ''}`}>
-                                    <div className="vwid-card-label">Blockers Status</div>
+                                    <div className="vwid-card-label">Estado de bloqueadores</div>
                                     <div className="vwid-risk-main">
                                         <div>
-                                            <div className="vwid-risk-value">{blockers.filter(b => b.approval_status === 'approved').length} approved</div>
-                                            <div className="vwid-risk-caption">Registered and approved blockers</div>
+                                            <div className="vwid-risk-value">{blockers.filter(b => b.approval_status === 'approved').length} aprobados</div>
+                                            <div className="vwid-risk-caption">Bloqueadores registrados y aprobados</div>
                                         </div>
                                     </div>
                                     <div className="vwid-risk-note">
-                                        {blockers.some(b => b.severity === 'critical' && b.approval_status === 'approved') ? 'Critical blocker approved - should surface to the PM.' : 'No critical blockers approved.'}
+                                        {blockers.some(b => b.severity === 'critical' && b.approval_status === 'approved') ? 'Hay un bloqueador crítico aprobado; debería mostrarse al PM.' : 'No hay bloqueadores críticos aprobados.'}
                                     </div>
                                 </div>
 
                                 <div className="vwid-summary-card vwid-audit-card">
-                                    <div className="vwid-card-label">Audit Trail</div>
-                                    <div className="vwid-audit-item">Blockers linked to item #{workItem.id}</div>
-                                    <div className="vwid-audit-item">Project scope: #{id}</div>
-                                    <div className="vwid-audit-item">PM approval required for blockers to be official</div>
+                                    <div className="vwid-card-label">Trazabilidad</div>
+                                    <div className="vwid-audit-item">Bloqueadores vinculados al ítem #{workItem.id}</div>
+                                    <div className="vwid-audit-item">Proyecto: #{id}</div>
+                                    <div className="vwid-audit-item">Se requiere aprobación del PM para que sean oficiales</div>
                                 </div>
                             </>
                         )}

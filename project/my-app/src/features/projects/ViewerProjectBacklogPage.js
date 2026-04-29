@@ -210,7 +210,7 @@ export default function ViewerProjectBacklogPage() {
                                                             cursor: 'pointer',
                                                         }}
                                                     >
-                                                        View
+                                                        Ver
                                                     </button>
                                                 </td>
                                             </tr>
