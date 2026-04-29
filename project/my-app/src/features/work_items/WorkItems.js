@@ -9,7 +9,7 @@ import api from '../../config/api';
  *   - projectName: nombre para el encabezado
  *   - currentUser: { id_user | id, username, role }
  */
-function WorkItems({ projectId, projectName, currentUser }) {
+function WorkItems({ projectId, projectName }) {
     const [items,           setItems]           = useState([]);
     const [sprints,         setSprints]         = useState([]);
     const [assignableUsers, setAssignableUsers] = useState([]);
@@ -46,21 +46,10 @@ function WorkItems({ projectId, projectName, currentUser }) {
 
     const loadAssignableUsers = useCallback(async () => {
         try {
-            const viewersResp = await api.get(`/projects/${projectId}/viewers`);
-            const viewers     = viewersResp.res.ok ? (viewersResp.data.viewers || []) : [];
-
-            const assignable  = [...viewers];
-            const userId = currentUser?.id_user ?? currentUser?.id;
-            if (currentUser?.role === 'pm' && userId) {
-                assignable.unshift({
-                    id_user:  userId,
-                    username: `${currentUser.username} (yo · PM)`,
-                    email:    currentUser.email,
-                });
-            }
-            setAssignableUsers(assignable);
+            const { res, data } = await api.get(`/projects/${projectId}/assignable`);
+            if (res.ok) setAssignableUsers(data.assignable || []);
         } catch {}
-    }, [projectId, currentUser]);
+    }, [projectId]);
 
     useEffect(() => {
         loadItems();
@@ -224,7 +213,7 @@ function WorkItems({ projectId, projectName, currentUser }) {
                                                     <option value="">— Sin asignar —</option>
                                                     {assignableUsers.map(u => (
                                                         <option key={u.id_user} value={u.id_user}>
-                                                            {u.username}
+                                                            {u.username} ({u.projectRole === 'pm' ? 'PM' : 'Visor'})
                                                         </option>
                                                     ))}
                                                 </select>

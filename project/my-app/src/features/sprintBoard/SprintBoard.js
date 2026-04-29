@@ -135,7 +135,7 @@ const FormField = ({ label, required, children }) => (
  * Props requeridos: sprint, user, onCancel, onAdded
  */
 const AddWorkItemForm = ({ sprint, user, onCancel, onAdded }) => {
-    const { id_sprint } = useParams();
+    const { id, id_sprint } = useParams();
 
     const [form, setForm] = useState({
         type: '', assignee: '', title: '', sp: 8, weight: 2,
@@ -144,11 +144,29 @@ const AddWorkItemForm = ({ sprint, user, onCancel, onAdded }) => {
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError]           = useState('');
+    const [assignableUsers, setAssignableUsers] = useState([]);
 
     useEffect(() => {
         const uid = user?.id_user ?? user?.id;
         if (uid) setForm(f => ({ ...f, created_by: uid }));
     }, [user]);
+
+    useEffect(() => {
+        if (!id) return;
+        api.get(`/projects/${id}/assignable`)
+            .then(({ res, data }) => {
+                if (res?.ok) {
+                    setAssignableUsers(data.assignable || []);
+                } else {
+                    console.error('[assignable] HTTP', res?.status, data);
+                    setError(data?.message || `No se pudo cargar la lista de miembros (HTTP ${res?.status}).`);
+                }
+            })
+            .catch(err => {
+                console.error('[assignable] network error', err);
+                setError('Error de conexión al cargar miembros del proyecto.');
+            });
+    }, [id]);
 
     const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
@@ -177,8 +195,7 @@ const AddWorkItemForm = ({ sprint, user, onCancel, onAdded }) => {
     return (
         <div className="add-form">
             <div className="add-form__header">
-                <span className="add-form__title">Add Work Item</span>
-                <span className="add-form__note">RF-08, RF-09 · PM only</span>
+                <span className="add-form__title">Agregar work item</span>
             </div>
 
             <div className="add-form__body">
@@ -204,14 +221,25 @@ const AddWorkItemForm = ({ sprint, user, onCancel, onAdded }) => {
                         />
                     </FormField>
 
-                    <FormField label="Assignee" required>
+                    <FormField label="Asignado a" required>
                         <select className="form-control" value={form.assignee} onChange={e => set('assignee', e.target.value)}>
-                            <option value="">Select assignee…</option>
-                            <option value="1">LC</option>
-                            <option value="2">BK</option>
-                            <option value="3">AD</option>
-                            <option value="4">JR</option>
+                            <option value="">— Selecciona un miembro —</option>
+                            {assignableUsers.map(u => (
+                                <option key={u.id_user} value={u.id_user}>
+                                    {u.username} ({u.projectRole === 'pm' ? 'PM' : 'Visor'})
+                                </option>
+                            ))}
                         </select>
+                        {assignableUsers.length === 0 && (
+                            <span style={{ fontSize: 11, color: '#AAA', marginTop: 3 }}>
+                                Sin miembros vinculados al proyecto
+                            </span>
+                        )}
+                        {assignableUsers.length === 1 && assignableUsers[0].projectRole === 'pm' && (
+                            <span style={{ fontSize: 11, color: '#AAA', marginTop: 3 }}>
+                                Solo tú estás vinculado a este proyecto. Vincula visores para poder asignarles items.
+                            </span>
+                        )}
                     </FormField>
                 </div>
 
