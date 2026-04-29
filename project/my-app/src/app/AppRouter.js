@@ -17,6 +17,7 @@ import AuditPage      from '../features/audit/AuditPage';
 import LeaderboardPage from '../features/leaderboard/LeaderboardPage';
 import SprintBoard    from '../features/sprintBoard/SprintBoard';
 import WorkItemsPage  from '../features/work_items/WorkItemsPage';
+import CostsPage      from '../features/costs/CostsPage';
 
 export default function AppRouter() {
     return (
@@ -119,6 +120,16 @@ export default function AppRouter() {
                             element={
                                 <ProtectedRoute roles={['pm', 'admin']}>
                                     <UsersPage />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* ── Costos (HU-12, HU-13) — todos los roles miembros del proyecto ── */}
+                        <Route
+                            path="/projects/:id/costs"
+                            element={
+                                <ProtectedRoute roles={['viewer', 'pm', 'admin']}>
+                                    <CostsPage />
                                 </ProtectedRoute>
                             }
                         />

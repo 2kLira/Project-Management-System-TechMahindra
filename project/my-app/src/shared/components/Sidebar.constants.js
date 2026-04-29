@@ -10,6 +10,7 @@ export const ICONS = {
     workitems:  '▤',
     backlog:    '▦',
     sprintboard:'◈',
+    costs:      '◍',
 };
 
 // ─── Navegación global (fuera de contexto de proyecto) ───────────────────────
@@ -71,5 +72,11 @@ export const PROJECT_NAV_ITEMS = [
         label:  'Work Items',
         icon:   'workitems',
         roles:  ['pm', 'admin'],          // Solo gestores asignan work items
+    },
+    {
+        suffix: 'costs',
+        label:  'Costs',
+        icon:   'costs',
+        // viewer, pm, admin → todos pueden registrar o aprobar costos
     },
 ];
