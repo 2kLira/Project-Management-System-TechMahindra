@@ -106,30 +106,104 @@ async function createBlocker(req, res) {
     }
 }
 
-// ─── GET /blockers?work_item_id=X ─────────────────────────────────────────
-// CA-03: listar bloqueadores de un item
+// ─── GET /blockers?work_item_id=X | project_id=X ────────────────────────────
+// CA-03: listar bloqueadores por item o por proyecto
 async function listBlockers(req, res) {
     try {
         const workItemId = parseInt(req.query.work_item_id);
+        const projectId = parseInt(req.query.project_id);
+        const approvalStatus = req.query.approval_status?.trim();
+        const requesterId = req.user.id_user;
+        const requesterRole = req.user.role;
 
-        if (!workItemId) {
+        if (!workItemId && !projectId) {
             return res.status(400).json({
-                message: 'work_item_id es requerido',
+                message: 'work_item_id o project_id es requerido',
             });
         }
 
-        // Obtener bloqueadores ordenados por fecha
-        const { data: blockers, error } = await supabase
+        if (projectId) {
+            const { data: project, error: projectErr } = await supabase
+                .from('project')
+                .select('id_project, id_pm')
+                .eq('id_project', projectId)
+                .single();
+
+            if (projectErr || !project) {
+                return res.status(404).json({ message: 'Proyecto no encontrado' });
+            }
+
+            if (requesterRole === 'pm' && project.id_pm !== requesterId) {
+                return res.status(403).json({ message: 'No tienes acceso a los bloqueadores de este proyecto' });
+            }
+        }
+
+        if (workItemId && requesterRole === 'viewer') {
+            const { data: workItem, error: workItemErr } = await supabase
+                .from('work_item')
+                .select('assignee_id')
+                .eq('id_work_item', workItemId)
+                .single();
+
+            if (workItemErr || !workItem) {
+                return res.status(404).json({ message: 'Work item no encontrado' });
+            }
+
+            if (workItem.assignee_id !== requesterId) {
+                return res.status(403).json({ message: 'No tienes acceso a los bloqueadores de este item' });
+            }
+        }
+
+        let blockersQuery = supabase
             .from('blocker_implication')
-            .select('*')
-            .eq('id_work_item', workItemId)
-            .order('created_at', { ascending: false });
+            .select('*');
+
+        if (workItemId) {
+            blockersQuery = blockersQuery.eq('id_work_item', workItemId);
+        }
+
+        if (projectId) {
+            blockersQuery = blockersQuery.eq('id_project', projectId);
+        }
+
+        if (approvalStatus) {
+            blockersQuery = blockersQuery.eq('approval_status', approvalStatus);
+        }
+
+        const { data: blockers, error } = await blockersQuery.order('created_at', { ascending: false });
 
         if (error) {
             return res.status(500).json({
                 message: 'Error cargando bloqueadores',
                 error: error.message,
             });
+        }
+
+        const workItemIds = [...new Set((blockers || []).map(b => b.id_work_item).filter(Boolean))];
+        const sprintIds = new Set();
+
+        let workItemMap = {};
+        let sprintMap = {};
+
+        if (workItemIds.length > 0) {
+            const { data: workItems } = await supabase
+                .from('work_item')
+                .select('id_work_item, id_sprint, title, description, status, type, story_points, assignee_id, created_at, updated_at')
+                .in('id_work_item', workItemIds);
+
+            (workItems || []).forEach(item => {
+                workItemMap[item.id_work_item] = item;
+                if (item.id_sprint) sprintIds.add(item.id_sprint);
+            });
+
+            if (sprintIds.size > 0) {
+                const { data: sprints } = await supabase
+                    .from('sprint')
+                    .select('id_sprint, name, begin_at, deadline, status, id_project')
+                    .in('id_sprint', [...sprintIds]);
+
+                sprintMap = Object.fromEntries((sprints || []).map(sprint => [sprint.id_sprint, sprint]));
+            }
         }
 
         // Hidratar info de creador y aprobador
@@ -157,6 +231,8 @@ async function listBlockers(req, res) {
             ...b,
             created_by_user: b.created_by ? userMap[b.created_by] : null,
             approved_by_user: b.approved_by ? userMap[b.approved_by] : null,
+            work_item: workItemMap[b.id_work_item] || null,
+            sprint: workItemMap[b.id_work_item]?.id_sprint ? (sprintMap[workItemMap[b.id_work_item].id_sprint] || null) : null,
         }));
 
         return res.status(200).json({ blockers: enriched });
