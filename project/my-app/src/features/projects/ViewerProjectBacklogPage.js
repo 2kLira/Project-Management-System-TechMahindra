@@ -127,6 +127,7 @@ export default function ViewerProjectBacklogPage() {
                                     <th className="vpb-th">ESTADO</th>
                                     <th className="vpb-th">RESPONSABLE</th>
                                     <th className="vpb-th">CAMBIAR ESTADO</th>
+                                    <th className="vpb-th"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -190,6 +191,27 @@ export default function ViewerProjectBacklogPage() {
                                                     ) : (
                                                         <span style={{ fontSize: 11, color: '#AAA' }}>—</span>
                                                     )}
+                                                </td>
+                                                <td className="vpb-td">
+                                                    <button
+                                                        onClick={() => navigate(
+                                                            `/projects/${id}/backlog/${item.id_work_item}`,
+                                                            { state: { projectName, item } }
+                                                        )}
+                                                        style={{
+                                                            height: 28,
+                                                            padding: '0 12px',
+                                                            fontSize: 11,
+                                                            fontWeight: 600,
+                                                            border: '1px solid #DEDAD0',
+                                                            borderRadius: 5,
+                                                            backgroundColor: '#FFF',
+                                                            color: '#555',
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        View
+                                                    </button>
                                                 </td>
                                             </tr>
                                         );

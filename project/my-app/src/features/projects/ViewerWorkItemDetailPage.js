@@ -1,12 +1,38 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import {
-    getBacklogItemById,
-    getStatusBadgeColors,
-    getTypeBadgeColors,
-    initialsFromName,
-} from './viewerBacklogMock';
 import './ViewerWorkItemDetailPage.css';
+
+// ── Helpers (antes venían del mock) ──────────────────────────────────────────
+function getStatusBadgeColors(status) {
+    if (status === 'done'        || status === 'Done')        return { color: '#3C9A57', bg: '#E9F7ED' };
+    if (status === 'in_progress' || status === 'In Progress') return { color: '#3162D1', bg: '#E7EEFF' };
+    return { color: '#7E8693', bg: '#EEF1F5' };
+}
+function getTypeBadgeColors(type) {
+    if (type === 'bug'        || type === 'Bug')        return { color: '#B94A48', bg: '#FCE9E9' };
+    if (type === 'user_story' || type === 'User Story') return { color: '#3162D1', bg: '#E7EEFF' };
+    return { color: '#3C9A57', bg: '#E9F7ED' };
+}
+function initialsFromName(name = '') {
+    const parts = String(name).split(' ').filter(Boolean);
+    return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || '?';
+}
+
+// ── Adapta el item real de la API al shape que usa el componente ─────────────
+function adaptItem(raw, projectId) {
+    if (!raw) return null;
+    return {
+        id:          raw.id_work_item,
+        title:       raw.title        || '(sin título)',
+        description: raw.description  || '',
+        type:        raw.type         || 'task',
+        status:      raw.status       || 'todo',
+        storyPoints: raw.story_points ?? 0,
+        assignee:    raw.assignee?.full_name || raw.assignee?.username || 'Sin asignar',
+        sprintLabel: raw.id_sprint ? `Sprint #${raw.id_sprint}` : `Proyecto #${projectId}`,
+        targetDate:  raw.end_date     || null,
+    };
+}
 
 function severityMeta(severity) {
     if (severity === 'critical') return { label: 'Crítico', color: '#B71C1C', bg: '#FDECEC' };
@@ -32,7 +58,8 @@ export default function ViewerWorkItemDetailPage() {
     const navigate = useNavigate();
     const projectName = location.state?.projectName || `Project ${id}`;
 
-    const workItem = useMemo(() => getBacklogItemById(id, itemId), [id, itemId]);
+    // Item real pasado desde ViewerProjectBacklogPage via location.state
+    const workItem = adaptItem(location.state?.item, id);
     const [currentStatus, setCurrentStatus] = useState(normalizeStatus(workItem?.status));
     const [blockers, setBlockers] = useState(() => {
         const base = workItem?.blockedSummary
@@ -320,27 +347,6 @@ export default function ViewerWorkItemDetailPage() {
                             </form>
                         </div>
 
-                        <div className="vwid-card">
-                            <div className="vwid-card-head vwid-card-head-tight">
-                                <div>
-                                    <div className="vwid-card-label">Activity</div>
-                                    <div className="vwid-card-note">Local timeline for the current item.</div>
-                                </div>
-                            </div>
-
-                            <div className="vwid-timeline">
-                                {timeline.map((entry) => (
-                                    <div key={entry.id} className="vwid-timeline-item">
-                                        <div className="vwid-timeline-dot" />
-                                        <div>
-                                            <div className="vwid-timeline-title">{entry.title}</div>
-                                            <div className="vwid-timeline-detail">{entry.detail}</div>
-                                            <div className="vwid-date">{entry.time}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
                     </section>
 
                     <aside className="vwid-side-column">
