@@ -73,7 +73,6 @@ export default function ViewerWorkItemDetailPage() {
     const isMyItem = workItem?.assigneeId === user?.id;
     const [currentStatus, setCurrentStatus] = useState(normalizeStatus(workItem?.status));
     const [blockers, setBlockers] = useState([]);
-    const projectName = location.state?.projectName || `Proyecto ${id}`;
     const [form, setForm] = useState({
         kind: 'blocker',
         description: '',
