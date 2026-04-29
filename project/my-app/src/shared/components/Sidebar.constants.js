@@ -74,6 +74,12 @@ export const PROJECT_NAV_ITEMS = [
         roles:  ['pm', 'admin'],          // Solo gestores asignan work items
     },
     {
+        suffix: 'blockers',
+        label:  'Bloqueadores pendientes',
+        icon:   'audit',
+        roles:  ['pm', 'admin'],          // Solo gestores revisan bloqueadores
+    },
+    {
         suffix: 'costs',
         label:  'Costs',
         icon:   'costs',

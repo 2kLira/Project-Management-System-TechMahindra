@@ -52,7 +52,29 @@ CREATE TABLE IF NOT EXISTS audit_log (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Blockers & Implications (HU-13)
+CREATE TABLE IF NOT EXISTS blocker_implication (
+    id_blocker SERIAL PRIMARY KEY,
+    id_work_item INT NOT NULL REFERENCES work_item(id_work_item) ON DELETE CASCADE,
+    id_project INT NOT NULL REFERENCES project(id_project) ON DELETE CASCADE,
+    kind VARCHAR(50) NOT NULL CHECK (kind IN ('blocker', 'implication')),
+    severity VARCHAR(50) NOT NULL CHECK (severity IN ('low', 'medium', 'critical')),
+    description TEXT NOT NULL,
+    impact TEXT NOT NULL,
+    created_by INT NOT NULL REFERENCES users(id_user),
+    created_at TIMESTAMP DEFAULT NOW(),
+    approved_by INT REFERENCES users(id_user),
+    approval_status VARCHAR(50) DEFAULT 'pending' CHECK (approval_status IN ('pending', 'approved', 'rejected')),
+    rejected_reason TEXT,
+    decided_at TIMESTAMP
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_project_member_user ON project_member(id_user);
 CREATE INDEX IF NOT EXISTS idx_project_member_project ON project_member(id_project);
 CREATE INDEX IF NOT EXISTS idx_role_user ON role(id_user);
+CREATE INDEX IF NOT EXISTS idx_blocker_work_item ON blocker_implication(id_work_item);
+CREATE INDEX IF NOT EXISTS idx_blocker_project ON blocker_implication(id_project);
+CREATE INDEX IF NOT EXISTS idx_blocker_status ON blocker_implication(approval_status);
+CREATE INDEX IF NOT EXISTS idx_blocker_severity ON blocker_implication(severity);
+CREATE INDEX IF NOT EXISTS idx_blocker_created_by ON blocker_implication(created_by);
