@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAuthContext } from '../../shared/context/AuthContext';
 import './ViewerWorkItemDetailPage.css';
 
 // ── Helpers (antes venían del mock) ──────────────────────────────────────────
@@ -29,6 +30,7 @@ function adaptItem(raw, projectId) {
         status:      raw.status       || 'todo',
         storyPoints: raw.story_points ?? 0,
         assignee:    raw.assignee?.full_name || raw.assignee?.username || 'Sin asignar',
+        assigneeId:  raw.assignee_id  || null,
         sprintLabel: raw.id_sprint ? `Sprint #${raw.id_sprint}` : `Proyecto #${projectId}`,
         targetDate:  raw.end_date     || null,
     };
@@ -56,10 +58,12 @@ export default function ViewerWorkItemDetailPage() {
     const { id, itemId } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const { user } = useAuthContext();
     const projectName = location.state?.projectName || `Project ${id}`;
 
     // Item real pasado desde ViewerProjectBacklogPage via location.state
     const workItem = adaptItem(location.state?.item, id);
+    const isMyItem = workItem?.assigneeId === user?.id;
     const [currentStatus, setCurrentStatus] = useState(normalizeStatus(workItem?.status));
     const [blockers, setBlockers] = useState(() => {
         const base = workItem?.blockedSummary
@@ -261,14 +265,15 @@ export default function ViewerWorkItemDetailPage() {
                             </div>
                         </div>
 
-                        <div className="vwid-card vwid-alert-card">
-                            <div className="vwid-card-head vwid-card-head-tight">
-                                <div>
-                                    <div className="vwid-card-label">Blockers & Implications</div>
-                                    <div className="vwid-card-note">CA-01 to CA-04 ready in UI, local-only.</div>
+                        {isMyItem && (
+                            <div className="vwid-card vwid-alert-card">
+                                <div className="vwid-card-head vwid-card-head-tight">
+                                    <div>
+                                        <div className="vwid-card-label">Blockers & Implications</div>
+                                        <div className="vwid-card-note">CA-01 to CA-04 ready in UI, local-only.</div>
+                                    </div>
+                                    <span className="vwid-scope-pill">{blockers.length} records</span>
                                 </div>
-                                <span className="vwid-scope-pill">{blockers.length} records</span>
-                            </div>
 
                             {activeBlocker ? (
                                 <div className="vwid-active-blocker" data-severity={activeBlocker.severity}>
@@ -345,7 +350,8 @@ export default function ViewerWorkItemDetailPage() {
                                     </button>
                                 </div>
                             </form>
-                        </div>
+                            </div>
+                        )}
 
                     </section>
 
