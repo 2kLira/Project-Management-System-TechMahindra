@@ -20,7 +20,7 @@ import WorkItemsPage  from '../features/work_items/WorkItemsPage';
 
 export default function AppRouter() {
     return (
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <AuthProvider>
                 <Routes>
                     {/* /login — redirige si ya está autenticado */}

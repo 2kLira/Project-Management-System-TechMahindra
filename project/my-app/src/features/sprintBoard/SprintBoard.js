@@ -294,7 +294,7 @@ export default function SprintBoard() {
     const fetchWorkItems = useCallback(async () => {
         setLoading(true);
         try {
-            const { res, data } = await api.get(`/sprintBoard/${id_sprint}/getWorkItems`);
+            const { data } = await api.get(`/sprintBoard/${id_sprint}/getWorkItems`);
             // Backend devuelve { message, data: supabaseResponse }
             // supabaseResponse = { data: [...workItems], error }
             const items = data?.data?.data ?? [];
