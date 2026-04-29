@@ -73,6 +73,7 @@ export default function ViewerWorkItemDetailPage() {
     const isMyItem = workItem?.assigneeId === user?.id;
     const [currentStatus, setCurrentStatus] = useState(normalizeStatus(workItem?.status));
     const [blockers, setBlockers] = useState([]);
+    const projectName = location.state?.projectName || `Proyecto ${id}`;
     const [form, setForm] = useState({
         kind: 'blocker',
         description: '',
@@ -84,13 +85,12 @@ export default function ViewerWorkItemDetailPage() {
     const [timeline, setTimeline] = useState([
         {
             id: 'created',
-            title: 'Ítem de trabajo creado',
+            title: 'Work item creado',
             detail: 'Agregado al backlog del Sprint 4 para el proyecto viewer.',
             time: 'Hoy · 08:10',
         },
     ]);
-    const [loadingBlockers, setLoadingBlockers] = useState(true);
-
+            title: 'Ítem de trabajo creado',
     // Cargar bloqueadores desde API
     useEffect(() => {
         if (!workItem?.id) {
