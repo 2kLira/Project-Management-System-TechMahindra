@@ -9,7 +9,8 @@ const userRoutes = require('./modules/users/users.routes');
 const workItemsRoutes = require('./modules/work_items/work_items.routes');
 const sprintRoutes = require('./modules/sprints/sprints.routes')
 const SprintBoardRoutes = require('./modules/sprintBoard/sprintBoard.route')
-const costsRoutes       = require('./modules/costs/costs.routes')
+const costsRoutes = require('./modules/costs/costs.routes')
+const blockersRoutes = require('./modules/blockers/blockers.routes')
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/work-items', workItemsRoutes);
 app.use('/sprints', sprintRoutes)
 app.use('/sprintBoard', SprintBoardRoutes)
 app.use('/costs', costsRoutes)
+app.use('/blockers', blockersRoutes)
 
 app.use(errorHandler);
 
