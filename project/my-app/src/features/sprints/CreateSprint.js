@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import api from '../../config/api';
 import './CreateSprint.css'; 
-
+import ws from '../../config/ws';
 
 export default function CreateSprint({ onClose }) {
 
   const [form, setForm] = useState({ nombre: '', fecha_inicio: '', estado: 'planned', fecha_final: '', SP: '' });
-
   const { id } = useParams();
 
   async function create_sprint() {
-    await api.post(`/sprints/${id}/create-sprint`, form)
+    const sprint = await api.post(`/sprints/${id}/create-sprint`, form)
+    
+    ws.send(JSON.stringify({ type: 'SPRINT_CREATED', data: sprint.data.data }))
+    onClose()
   }
 
   return (
