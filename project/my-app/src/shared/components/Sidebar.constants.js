@@ -99,6 +99,12 @@ export const PROJECT_NAV_ITEMS = [
         roles:  ['pm', 'admin'],
     },
     {
+        suffix: 'alerts',
+        label:  'Alertas',
+        icon:   'audit',
+        roles:  ['pm', 'admin'],
+    },
+    {
         suffix: 'leaderboard',
         label:  'Clasificación',
         icon:   'leader',
