@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext';
 import api from '../../config/api';
 import { KIND_ICONS, formatRelativeTime } from '../../features/notifications/notifications.utils';
+import { ReactComponent as BellIcon } from './bell-alt-1.svg';
 import './NotificationBell.css';
 
 const POLL_MS = 60_000;
@@ -80,7 +81,7 @@ export default function NotificationBell() {
     return (
         <div className="nb-wrap" ref={wrapRef}>
             <button className="nb-btn" onClick={toggleOpen} aria-label="Notificaciones">
-                <span className="nb-icon">🔔</span>
+                <BellIcon className="nb-icon" />
                 {unreadCount > 0 && <span className="nb-badge">{badge}</span>}
             </button>
 
