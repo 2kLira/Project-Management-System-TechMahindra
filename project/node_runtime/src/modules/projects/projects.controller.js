@@ -62,16 +62,7 @@ async function getManagers(req, res) {
 
         if (usersErr) return res.status(500).json({ error: usersErr.message });
 
-        const { data: busyProjects, error: busyErr } = await supabase
-            .from('project')
-            .select('id_pm');
-
-        if (busyErr) return res.status(500).json({ error: busyErr.message });
-
-        const busyPmSet = new Set(busyProjects.map(p => p.id_pm));
-        const availablePms = users.filter(u => !busyPmSet.has(u.id_user));
-
-        return res.status(200).json({ pms: availablePms });
+        return res.status(200).json({ pms: users });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -150,21 +141,6 @@ async function createProject(req, res) {
         if (pmRole.status !== 'pm') {
             return res.status(400).json({
                 message: `CA-02: el usuario asignado tiene rol '${pmRole.status}', se requiere 'pm'`
-            });
-        }
-
-        // Un solo proyecto por PM
-        const { data: existingPmProject, error: existingErr } = await supabase
-            .from('project')
-            .select('id_project, project_name')
-            .eq('id_pm', id_pm);
-
-        if (existingErr) {
-            return res.status(500).json({ message: 'Error verificando PM', error: existingErr.message });
-        }
-        if (existingPmProject && existingPmProject.length > 0) {
-            return res.status(400).json({
-                message: `El PM ya está asignado al proyecto "${existingPmProject[0].project_name}". Un PM solo puede gestionar un proyecto a la vez.`
             });
         }
 
