@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Topbar from './Topbar';
 import { useAuthContext } from '../context/AuthContext';
 
 export default function AppLayout() {
@@ -16,13 +17,16 @@ export default function AppLayout() {
     return (
         <div style={{ display:'flex', minHeight:'100vh', width:'100%', backgroundColor:'#F5F5F4' }}>
             <Sidebar onLogout={handleLogout} />
-            {user?.role === 'viewer' && !canRenderViewerContent ? (
-                <main style={{ flex:1, minWidth:0, overflowX:'hidden', backgroundColor:'#F5F5F4' }} />
-            ) : (
-                <main style={{ flex:1, minWidth:0, overflowX:'hidden' }}>
-                    <Outlet />
-                </main>
-            )}
+            <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
+                <Topbar />
+                {user?.role === 'viewer' && !canRenderViewerContent ? (
+                    <main style={{ flex:1, minWidth:0, overflowX:'hidden', backgroundColor:'#F5F5F4' }} />
+                ) : (
+                    <main style={{ flex:1, minWidth:0, overflowX:'hidden' }}>
+                        <Outlet />
+                    </main>
+                )}
+            </div>
         </div>
     );
 }
