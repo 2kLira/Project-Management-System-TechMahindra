@@ -9,16 +9,6 @@ import SidebarProjectSection from './SidebarProjectSection';
 import TechMahindraLogo from './TechMahindraLogo';
 import './Sidebar.css';
 
-/** Extrae iniciales del username para el avatar */
-function getInitials(username = '') {
-    return username
-        .split(/[\s_-]+/)
-        .slice(0, 2)
-        .map(w => w[0] ?? '')
-        .join('')
-        .toUpperCase() || '?';
-}
-
 /**
  * Sidebar unificado con RBAC real.
  *
@@ -131,18 +121,8 @@ export default function Sidebar({ onLogout }) {
                 </>
             )}
 
-            {/* ── Footer: usuario + logout ──────────────────────────────────── */}
+            {/* ── Footer: solo logout (el bloque usuario se movió al Topbar) ── */}
             <div className="sb-logout-wrap">
-                <div className="sb-user-info">
-                    <div className="sb-user-avatar">
-                        {getInitials(user?.username)}
-                    </div>
-                    <div className="sb-user-meta">
-                        <span className="sb-user-name">{user?.username}</span>
-                        <span className="sb-user-role">{user?.role}</span>
-                    </div>
-                </div>
-
                 {onLogout && (
                     <button className="sb-logout-btn" onClick={onLogout}>
                         <span className="sb-logout-btn-icon">⎋</span>
