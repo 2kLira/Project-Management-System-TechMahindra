@@ -1,6 +1,7 @@
-const supabase               = require('../../config/supabase');
-const { computeRiskScore }   = require('../semaphore/riskScore');
-const { buildPrediction }    = require('../semaphore/prediction');
+const supabase                    = require('../../config/supabase');
+const { computeRiskScore }        = require('../semaphore/riskScore');
+const { buildPrediction }         = require('../semaphore/prediction');
+const { generateRiskExplanation } = require('../semaphore/riskExplanation');
 
 // =====================================================
 // GET /projects
@@ -650,6 +651,21 @@ async function getProjectProgress(req, res) {
             expectedWeeklySP,
         });
 
+        // ── HU-18: explicación automática del riesgo ────────────────────────
+        const risk_explanation = generateRiskExplanation({
+            semaforo,
+            desviacion,
+            deadline:        project.deadline,
+            avance_real,
+            costo_aprobado,
+            presupuesto,
+            blockers:        blockers        || [],
+            activeRisks:     activeRisks     || [],
+            recentSP,
+            expectedWeeklySP,
+            allPastSprints:  allPastSprintsForPrediction,
+        });
+
         // ── HU-24 v3: bloque de predicción temporal ─────────────────────────
         const prediction = buildPrediction({
             project:         { deadline: project.deadline },
@@ -679,6 +695,7 @@ async function getProjectProgress(req, res) {
             risk_score,
             semaforo,
             semaforo_overrides,
+            risk_explanation,
             prediction,
         });
     } catch (error) {

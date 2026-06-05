@@ -53,7 +53,7 @@ export default function ProjectProgressCard({ projectId }) {
     if (!progress) return null;
 
     const { avance_real, avance_esperado, desviacion, sp_completados, sp_esperados, sp_totales,
-  semaforo, risk_score, semaforo_overrides, prediction } = progress;
+  semaforo, risk_score, semaforo_overrides, risk_explanation, prediction } = progress;
 
     const sign = desviacion > 0 ? '+' : '';
     const desviacionStr = `${sign}${desviacion.toFixed(2)}%`;
@@ -106,6 +106,15 @@ export default function ProjectProgressCard({ projectId }) {
                             ))}
                         </ul>
                     </div>
+                </div>
+            )}
+
+            {risk_explanation && (semaforo === 'amarillo' || semaforo === 'rojo') && (
+                <div className={`ppc-explanation ppc-explanation--${semaforo}`}>
+                    <div className="ppc-explanation-label">
+                        {semaforo === 'rojo' ? '🔴' : '🟡'} Diagnóstico automático
+                    </div>
+                    <p className="ppc-explanation-text">{risk_explanation}</p>
                 </div>
             )}
 
