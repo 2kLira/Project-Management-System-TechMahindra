@@ -45,6 +45,9 @@ app.$IP.sslip.io {
     handle_path /api/* {
         reverse_proxy 127.0.0.1:8080
     }
+    handle /ws* {
+        reverse_proxy 127.0.0.1:8090
+    }
     handle {
         try_files {path} /index.html
         file_server
@@ -57,6 +60,9 @@ dev.$IP.sslip.io {
     root * /srv/pms/dev/web
     handle_path /api/* {
         reverse_proxy 127.0.0.1:8081
+    }
+    handle /ws* {
+        reverse_proxy 127.0.0.1:8091
     }
     handle {
         try_files {path} /index.html
