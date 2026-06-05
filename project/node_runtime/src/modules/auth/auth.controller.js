@@ -44,7 +44,7 @@ async function login(req, res) {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.COOKIE_SECURE === 'true', // true en VM (HTTPS), false en localhost
       sameSite: 'lax',
       maxAge: 3600000
     });
