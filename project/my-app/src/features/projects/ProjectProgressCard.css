@@ -292,6 +292,48 @@
     line-height: 1.6;
 }
 
+/* ── Risk Explanation HU-18 ─────────────────────── */
+.ppc-explanation {
+    margin: -4px 0 16px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border-left-width: 3px;
+    border-left-style: solid;
+}
+
+.ppc-explanation--amarillo {
+    background: #FFFBEB;
+    border-color: #D97706;
+    border: 1px solid #FDE68A;
+    border-left: 3px solid #D97706;
+}
+
+.ppc-explanation--rojo {
+    background: #FFF5F5;
+    border: 1px solid #FFCDD2;
+    border-left: 3px solid #CC0000;
+}
+
+.ppc-explanation-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.ppc-explanation--amarillo .ppc-explanation-label { color: #92400E; }
+.ppc-explanation--rojo     .ppc-explanation-label { color: #B71C1C; }
+
+.ppc-explanation-text {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.65;
+}
+
+.ppc-explanation--amarillo .ppc-explanation-text { color: #78350F; }
+.ppc-explanation--rojo     .ppc-explanation-text { color: #7F1D1D; }
+
 /* ── Skeleton ───────────────────────────────────── */
 .ppc-skeleton {
     height: 96px;
