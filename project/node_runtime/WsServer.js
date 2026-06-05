@@ -1,7 +1,7 @@
 const { WebSocketServer, WebSocket } = require('ws')
 
 const server = new WebSocketServer({
-    port: 8081
+    port: process.env.WS_PORT || 8081
 })
 
 server.on('connection', (socket) => {
