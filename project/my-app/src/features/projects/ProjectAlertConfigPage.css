@@ -1,0 +1,54 @@
+.pac-page { padding: 32px; }
+.pac-loading { color: #78716C; }
+.pac-card {
+    max-width: 640px;
+    background: #FFFFFF;
+    border: 1px solid #E7E5E4;
+    border-radius: 12px;
+    padding: 28px;
+}
+.pac-title { font-size: 20px; font-weight: 700; color: #1C1917; margin: 0 0 8px; }
+.pac-help { font-size: 13px; color: #57534E; margin: 0 0 20px; line-height: 1.5; }
+.pac-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #1C1917;
+    padding: 8px 0;
+}
+.pac-threshold {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0 4px 26px;
+    font-size: 13px;
+    color: #44403C;
+}
+.pac-threshold input {
+    width: 72px;
+    padding: 6px 8px;
+    border: 1px solid #D6D3D1;
+    border-radius: 6px;
+    font-size: 14px;
+}
+.pac-range { color: #A8A29E; font-size: 12px; }
+.pac-error   { color: #DC2626; font-size: 13px; margin-top: 14px; }
+.pac-success { color: #16A34A; font-size: 13px; margin-top: 14px; }
+.pac-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+.pac-btn {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+.pac-btn-ghost { background: #FFFFFF; border-color: #D6D3D1; color: #44403C; }
+.pac-btn-primary { background: #6D28D9; color: #FFFFFF; }
+.pac-btn-primary:disabled { background: #C4B5FD; cursor: not-allowed; }

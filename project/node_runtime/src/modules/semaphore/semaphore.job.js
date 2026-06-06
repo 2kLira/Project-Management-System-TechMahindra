@@ -2,6 +2,7 @@
 // y persiste en la tabla semaphore (upsert por id_project).
 const supabase          = require('../../config/supabase');
 const { computeRiskScore } = require('./riskScore');
+const { evaluateAlert } = require('./alertRules');
 
 async function runSemaphoreUpdate() {
     console.log('[semaphore.job] Iniciando actualización de Risk Score...');
@@ -19,8 +20,11 @@ async function runSemaphoreUpdate() {
             { data: spends   },
             { data: blockers },
             { data: risks    },
+            { data: previousSemaphores },
+            { data: alertConfigs },
+            { data: adminRoles },
         ] = await Promise.all([
-            supabase.from('project').select('id_project, estimated_sp, deadline, start_date'),
+            supabase.from('project').select('id_project, estimated_sp, deadline, start_date, id_pm'),
             supabase.from('sprint').select('id_sprint, id_project, SP_estimated, deadline'),
             supabase.from('work_item').select('id_sprint, story_points, status, updated_at'),
             supabase.from('budget').select('id_budget, id_project, total_cost'),
@@ -30,12 +34,26 @@ async function runSemaphoreUpdate() {
                 .eq('kind', 'blocker')
                 .in('approval_status', ['pending', 'approved']),
             supabase.from('risk').select('id_project, level').eq('status', 'active'),
+            supabase.from('semaphore').select('id_project, risk_score, status'),
+            supabase.from('project_alert_config')
+                .select('id_project, notify_to_yellow, notify_to_red, notify_score_jump, score_jump_threshold'),
+            supabase.from('role').select('id_user').eq('status', 'admin'),
         ]);
 
         // ── Mapas de lookup ──────────────────────────────────────────────────
         const sprintToProject = Object.fromEntries((sprints  || []).map(s => [s.id_sprint,  s.id_project]));
         const budgetToProject = Object.fromEntries((budgets  || []).map(b => [b.id_budget,  b.id_project]));
         const budgetToTotal   = Object.fromEntries((budgets  || []).map(b => [b.id_project, Number(b.total_cost || 0)]));
+
+        // ── Lookups para alertas (HU-27) ─────────────────────────────────────
+        const previousByProject = Object.fromEntries(
+            (previousSemaphores || []).map(s => [s.id_project, s])
+        );
+        const configByProject = Object.fromEntries(
+            (alertConfigs || []).map(c => [c.id_project, c])
+        );
+        const adminIds = (adminRoles || []).map(r => r.id_user);
+        const notificationsToInsert = [];
 
         // ── Agregaciones de work items ───────────────────────────────────────
         const doneSPByProject   = {};
@@ -122,6 +140,29 @@ async function runSemaphoreUpdate() {
                 risk_score:          score,
                 semaphore_update_at: nowISO,
             });
+
+            // ── HU-27: evaluar si el riesgo empeoró y encolar notificaciones ──
+            const previous = previousByProject[pid];
+            const alert = evaluateAlert({
+                previousScore:  previous?.risk_score ?? null,
+                previousStatus: previous?.status     ?? null,
+                newScore:       score,
+                newStatus:      semaforo_en,
+                config:         configByProject[pid],
+            });
+            if (alert) {
+                const recipientIds = new Set([p.id_pm, ...adminIds].filter(Boolean));
+                for (const uid of recipientIds) {
+                    notificationsToInsert.push({
+                        id_user:      uid,
+                        id_project:   pid,
+                        kind:         alert.kind,
+                        subject:      alert.subject,
+                        write:        alert.write,
+                        delivered_at: nowISO,
+                    });
+                }
+            }
         }
 
         if (upserts.length > 0) {
@@ -134,6 +175,17 @@ async function runSemaphoreUpdate() {
             } else {
                 console.log(`[semaphore.job] ${upserts.length} proyectos actualizados.`);
             }
+        }
+
+        // ── HU-27: persistir notificaciones generadas en este run ────────────
+        if (notificationsToInsert.length > 0) {
+            const { error } = await supabase
+                .from('notifications')
+                .insert(notificationsToInsert);
+            if (error) console.error('[semaphore.job] Error insertando notifications:', error.message);
+            else console.log(`[semaphore.job] ${notificationsToInsert.length} notificaciones generadas.`);
+        } else {
+            console.log('[semaphore.job] 0 notificaciones generadas.');
         }
     } catch (err) {
         console.error('[semaphore.job] Error inesperado:', err.message);

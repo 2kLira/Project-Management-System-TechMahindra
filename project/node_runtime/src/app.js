@@ -16,6 +16,8 @@ const suggestionsRoutes = require('./modules/suggestions/suggestions.routes')
 const dashboardRoutes = require('./modules/dashboard/dashboard.routes')
 const risksRoutes     = require('./modules/risks/risks.routes')
 const auditRoutes     = require('./modules/audit/audit.routes')
+const notificationsRoutes = require('./modules/notifications/notifications.routes')
+const alertConfigRoutes   = require('./modules/alert_config/alert_config.routes')
 
 const app = express();
 expressWs(app)
@@ -70,6 +72,8 @@ app.use('/suggestions', suggestionsRoutes)
 app.use('/dashboard', dashboardRoutes)
 app.use('/risks',     risksRoutes)
 app.use('/audit',     auditRoutes)
+app.use('/notifications', notificationsRoutes)
+app.use('/projects/:id/alert-config', alertConfigRoutes)
 
 app.use(errorHandler);
 

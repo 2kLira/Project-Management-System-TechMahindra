@@ -1,0 +1,99 @@
+name: Deploy a Azure VM
+
+# main -> producción ; dev -> staging. Tambien permite deploy manual.
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & Deploy (${{ github.ref_name }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Resuelve a qué entorno va según la rama.
+      # REF_NAME pasa por env (no se interpola en el shell) para evitar inyección.
+      - name: Resolver entorno
+        id: env
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_NAME" = "main" ]; then
+            echo "name=prod"            >> "$GITHUB_OUTPUT"
+            echo "remote=/srv/pms/prod" >> "$GITHUB_OUTPUT"
+            echo "pm2=pms-api-prod"     >> "$GITHUB_OUTPUT"
+          else
+            echo "name=dev"             >> "$GITHUB_OUTPUT"
+            echo "remote=/srv/pms/dev"  >> "$GITHUB_OUTPUT"
+            echo "pm2=pms-api-dev"      >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: project/my-app/pnpm-lock.yaml
+
+      # Compila el frontend en el runner (RAM gratis). REACT_APP_API_URL=/api -> same-origin.
+      # Si el build falla, el deploy se detiene aquí y la VM no se toca.
+      - name: Build frontend
+        working-directory: project/my-app
+        env:
+          CI: true
+          REACT_APP_API_URL: /api
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      # Carga la llave privada (secret) en el ssh-agent del runner
+      - name: Configurar SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VM_SSH_KEY }}
+
+      - name: Confiar en el host de la VM
+        run: ssh-keyscan -H "${{ secrets.VM_HOST }}" >> ~/.ssh/known_hosts
+
+      # Sube el build estático del frontend
+      - name: Subir frontend
+        run: |
+          rsync -az --delete \
+            project/my-app/build/ \
+            "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:${{ steps.env.outputs.remote }}/web/"
+
+      # Sube el backend (sin node_modules ni .env: el .env vive en la VM y se conserva)
+      - name: Subir backend
+        run: |
+          rsync -az --delete \
+            --exclude node_modules --exclude .env \
+            project/node_runtime/ \
+            "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:${{ steps.env.outputs.remote }}/api/"
+
+      # Sube el ecosystem de pm2 (define ambos backends)
+      - name: Subir config pm2
+        run: |
+          rsync -az deploy/ecosystem.config.js \
+            "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:/srv/pms/ecosystem.config.js"
+
+      # Instala deps de prod del backend y (re)arranca solo el proceso de este entorno
+      - name: Instalar deps + recargar pm2
+        run: |
+          ssh "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}" \
+            "cd ${{ steps.env.outputs.remote }}/api \
+             && pnpm install --prod --frozen-lockfile \
+             && pm2 startOrReload /srv/pms/ecosystem.config.js --only ${{ steps.env.outputs.pm2 }} --update-env \
+             && pm2 save"
