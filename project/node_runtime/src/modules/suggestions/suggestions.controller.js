@@ -2,9 +2,7 @@ const supabase = require('../../config/supabase')
 
 const ai = require('../../config/gemini')
 
-const { WebSocket } = require('ws');
-
-const server = require('../../../WsServer')
+const expressWs = require('express-ws')
 
 async function get_projects(req, res) {
     const { id_user } = req.user
@@ -81,8 +79,8 @@ async function chat_bot(req, res) {
             if (event.event_type === "step.delta") {
                 if (event.delta.type === "text") {
                     process.stdout.write(event.delta.text);
-                    server.clients.forEach((client) => {
-                        if (client.readyState === WebSocket.OPEN) { 
+                    clients.forEach((client) => {
+                        if (client.readyState === 1) { 
                             client.send(JSON.stringify({type: 'chatbot', data: event.delta.text, id_project: id_project}))
                         }
                     });

@@ -30,6 +30,7 @@ export default function CreateSprint({ onClose }) {
         setLoading(true);
         try {
             const sprint = await api.post(`/sprints/${id}/create-sprint`, form);
+            console.log("WS procesando")
             ws.send(JSON.stringify({ type: 'SPRINT_CREATED', data: sprint.data.data }));
             onClose();
         } catch {

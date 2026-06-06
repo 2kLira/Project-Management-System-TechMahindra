@@ -19,14 +19,17 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "express-ws": "^5.0.2",
     "jsonwebtoken": "^9.0.3",
-    "ws": "^8.20.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["argon2", "protobufjs"]
+    "onlyBuiltDependencies": [
+      "argon2",
+      "protobufjs"
+    ]
   }
 }

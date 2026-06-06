@@ -1,4 +1,5 @@
 const express = require('express');
+const expressWs = require('express-ws')
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { errorHandler } = require('./shared/errors/errorHandler');
@@ -17,15 +18,44 @@ const risksRoutes     = require('./modules/risks/risks.routes')
 const auditRoutes     = require('./modules/audit/audit.routes')
 
 const app = express();
-
-require('../WsServer') 
-
+expressWs(app)
 
 app.use(express.json());
 app.use(cors({
-    origin: [process.env.BACKEND_API_URL || 'http://localhost:8080', process.env.WS_API_URL || 'http://localhost:8081', process.env.REACT_APP_API_URL || 'http://localhost:3000'],
+    origin: [process.env.FRONTED_API_URL || 'http://localhost:3000', process.env.REACT_APP_BACKEND_API_URL, process.env.REACT_APP_WS_API_URL ,  'http://localhost:3000', ],
     credentials: true,
 }));
+
+
+app.ws('/ws', (ws, req) => {
+    console.log('client connected') 
+
+    ws.on('message', (message) => {
+        try{
+            const mensaje = JSON.parse(message.toString()) 
+
+            clients.forEach((client) => {
+                if (client.readyState === 1) {
+                    client.send(JSON.stringify(mensaje))
+                }
+            })
+
+        } catch(error){
+            console.error(message.toString())
+        }
+    })
+
+    ws.on('close', () => {
+        console.log('client disconnected') 
+    });
+
+    ws.on('error', (err) => {
+        console.error('Socket error:', err)
+    })
+
+    
+})
+
 app.use(cookieParser());
 
 app.use('/auth', authRoutes);

@@ -64,6 +64,7 @@ export default function SprintsPage() {
         consultSprint();
 
         const handler = ({ data }) => {
+            console.log("Mensaje recibido")
             const mensaje = JSON.parse(data);
             if (mensaje.type === 'SPRINT_CREATED') {
                 const newSprint = mensaje.data[0];

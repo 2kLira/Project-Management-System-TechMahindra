@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 
 const secretKey = process.env.JWT_SECRET;
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 async function login(req, res) {
   try {
     const { email_user, password } = req.body;
@@ -42,10 +44,12 @@ async function login(req, res) {
       { expiresIn: "1h" }
     );
 
+    console.log('Seteando cookie con token:', token)
+
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : "lax",
       maxAge: 3600000
     });
 
