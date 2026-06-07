@@ -7,29 +7,37 @@ const { WebSocket } = require('ws');
 const server = require('../../../WsServer')
 
 async function get_projects(req, res) {
-    const { id_user } = req.user
+    const { id_user, role } = req.user
 
     //console.log('id_user:', id_user)
 
     try{
-        const responseMember = await supabase
-            .from('project')
-            .select('id_pm, id_project')
-            .eq('id_pm', id_user)
 
-        //console.log(responseMember)
+        let ids = []
+        if (role == "pm"){
+            const responseMember = await supabase
+                .from('project')
+                .select('id_pm, id_project')
+                .eq('id_pm', id_user)
 
-        if (responseMember.error){
-            return res.status(401).json({ message: 'Project not found' });
+            //console.log(responseMember)
+
+            if (responseMember.error){
+                return res.status(401).json({ message: 'Project not found' });
+            }
+            ids = responseMember.data.map(r => r.id_project)
+
         }
-        
-        const ids = responseMember.data.map(r => r.id_project)
 
-        const responseProject = await supabase
+        const query_project = supabase
             .from('semaphore')
             .select('id_project, status, project(*)')
-            .in('id_project', ids,)
-            .in('status', ['yellow', 'red']) 
+            .in('status', ['yellow', 'red'])
+            if (ids.length > 0){ 
+                query_project.in('id_project', ids) 
+            }
+
+        const responseProject = await query_project
         
         //console.log(responseProject)
 
@@ -39,7 +47,7 @@ async function get_projects(req, res) {
 
         return res.status(200).json({ message: 'Consult projects semaphore success', data: responseProject.data })
     } catch(error){
-        return res.status(501).json({ message: 'Consult projects semaphore failed' })
+        return res.status(500).json({ message: 'Consult projects semaphore failed' })
     }
 }
 
