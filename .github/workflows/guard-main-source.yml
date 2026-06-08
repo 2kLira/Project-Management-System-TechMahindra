@@ -1,0 +1,22 @@
+name: Guard — main solo acepta PR desde dev
+
+# Corre en cada PR cuyo destino sea main. Falla si el branch de origen no es 'dev'.
+# Marca este check como OBLIGATORIO en el ruleset de main para bloquear el merge.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  source-must-be-dev:
+    name: source-must-be-dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar branch de origen
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD_REF" != "dev" ]; then
+            echo "::error::A 'main' solo se permite PR desde 'dev'. Origen actual: '$HEAD_REF'."
+            exit 1
+          fi
+          echo "OK: PR proviene de 'dev'."
