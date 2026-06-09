@@ -3,6 +3,9 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { errorHandler } = require('./shared/errors/errorHandler');
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerFile = require('../swagger_output.json');
+
 const authRoutes = require('./modules/auth/auth.routes');
 const projectRoutes = require('./modules/projects/projects.routes');
 const userRoutes = require('./modules/users/users.routes');
@@ -18,7 +21,9 @@ const auditRoutes     = require('./modules/audit/audit.routes')
 const notificationsRoutes = require('./modules/notifications/notifications.routes')
 const alertConfigRoutes   = require('./modules/alert_config/alert_config.routes')
 
+
 const app = express();
+
 
 require('../WsServer') 
 
@@ -29,6 +34,8 @@ app.use(cors({
     credentials: true,
 }));
 app.use(cookieParser());
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 app.use('/auth', authRoutes);
 app.use('/projects', projectRoutes);
