@@ -37,6 +37,10 @@ app.use(cookieParser());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
+app.get('/swagger.json', (req, res) => {
+  res.json(swaggerFile);
+});
+
 app.use('/auth', authRoutes);
 app.use('/projects', projectRoutes);
 app.use('/users', userRoutes);
