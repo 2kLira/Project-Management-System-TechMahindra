@@ -4,6 +4,7 @@ import ProtectedRoute from '../shared/components/ProtectedRoute';
 import PublicOnlyRoute from '../shared/components/PublicOnlyRoute';
 import AppLayout from '../shared/components/AppLayout';
 
+import ApiDocs from '../swagger';
 import LoginPage      from '../features/auth/LoginPage';
 import HomePage       from '../features/dashboard/HomePage';
 import ProjectsPage   from '../features/projects/ProjectsPage';
@@ -30,6 +31,7 @@ export default function AppRouter() {
             <AuthProvider>
                 <ScrollToTop />
                 <Routes>
+                    <Route path="/api-docs" element={<ApiDocs />} />
                     {/* /login — redirige si ya está autenticado */}
                     <Route
                         path="/login"

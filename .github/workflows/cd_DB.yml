@@ -1,0 +1,38 @@
+name: Deploy dev db changes to db production
+
+on:
+  pull_request:
+    branches:
+     - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_ID_DEV: ${{ vars.SUPABASE_ID_DEV }}
+      PROJECT_ID_PRODUCTION: ${{ vars.SUPABASE_ID_PRODUCTION }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      
+      - name: Point db dev to pull new changes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_KEY_DEV }}
+        run: supabase link --project-ref $PROJECT_ID_DEV
+
+      - name: Pull the changes
+        run: supabase db pull
+
+      - name: Point db production to push new changes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_KEY_PRODUCTION }}
+        run: supabase link --project-ref $PROJECT_ID_PRODUCTION
+      
+      - name: Push the changes to production
+        run: supabase db push

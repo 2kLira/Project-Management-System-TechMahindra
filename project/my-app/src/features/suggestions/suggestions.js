@@ -164,13 +164,16 @@ export default function Suggestions() {
                 >
                     ✦ Gemini
                 </button>
+                {/*
                 <button
                     className={`ai-btn ${!aiOnlineSelect ? 'active' : ''}`}
                     onClick={() => setaiOnlineSelect(false)}
                 >
                     ⬡ IA Local
                 </button>
+                */}
             </div>
+            
 
             {/* Layout */}
             <div className="suggestions-layout">
